@@ -7,7 +7,7 @@
 #
 # Every scan run is checked for: a hang, a non-zero exit code, a sanitizer report,
 # and a SUMMARY that adds up:
-#     scanned == open + closed + filtered + unreachable
+#     scanned == open + closed + filtered + unreachable + errors
 #
 # Usage:
 #   make test                                  # builds ./moscar_asan and runs this script
@@ -29,6 +29,7 @@ OPEN_LABEL="open ports"
 CLOSED_LABEL="closed ports"
 FILTERED_LABEL="filtered ports"
 UNREACHABLE_LABEL="unreachable ports"
+ERRORS_LABEL="error ports"       # v0.2: probes that ended in an unexpected error (match your summary)
 
 # Decisions about YOUR program's behavior. Change them here when you change the program.
 HELP_EXIT=1             # exit code after --help / -h (many tools use 0)
@@ -93,7 +94,7 @@ trap cleanup EXIT
 # Number inside e.g. "open ports[2]" from the scanner's output.
 field() { grep -o "$1\[[0-9]*\]" <<<"$OUT" | head -n1 | grep -o '[0-9]*'; }
 
-# run_scan <args...>  ->  sets OUT ERR CODE ELAPSED S O C F U
+# run_scan <args...>  ->  sets OUT ERR CODE ELAPSED S O C F U E
 run_scan() {
     local errf t0 t1
     errf=$(mktemp)
@@ -110,6 +111,7 @@ run_scan() {
     C=$(field "$CLOSED_LABEL")
     F=$(field "$FILTERED_LABEL")
     U=$(field "$UNREACHABLE_LABEL")
+    E=$(field "$ERRORS_LABEL")
 }
 
 sanitizer_hit() { grep -qE "Sanitizer|runtime error" <<<"$ERR"; }
@@ -123,9 +125,9 @@ base_checks() {
     if [ -z "$S" ]; then
         p+="no SUMMARY line found; "
     else
-        total=$(( ${O:-0} + ${C:-0} + ${F:-0} + ${U:-0} ))
+        total=$(( ${O:-0} + ${C:-0} + ${F:-0} + ${U:-0} + ${E:-0} ))
         [ "$S" -ne "$total" ] &&
-            p+="summary does not add up: scanned=$S but open+closed+filtered+unreachable=$total; "
+            p+="summary does not add up: scanned=$S but open+closed+filtered+unreachable+errors=$total; "
     fi
     printf '%s' "$p"
 }
@@ -307,6 +309,33 @@ if unshare -rn true 2>/dev/null; then       # needs unprivileged user namespaces
 else
     echo "  skip  (unshare -rn is not available on this system)"
 fi
+
+echo "== socket() failure =="
+# A tiny shared library makes every socket() call fail with EMFILE, so the
+# "probe could not even start" path is exercised. Every port must still be
+# counted somewhere. Decision encoded here: the scan keeps going and exits 0.
+SHIM_DIR=$(mktemp -d)
+cat >"$SHIM_DIR/fail_socket.c" <<'SHIM'
+#define _GNU_SOURCE
+#include <errno.h>
+#include <sys/socket.h>
+int socket(int domain, int type, int protocol)
+{
+    (void)domain; (void)type; (void)protocol;
+    errno = EMFILE;
+    return -1;
+}
+SHIM
+if command -v gcc >/dev/null &&
+   gcc -shared -fPIC -o "$SHIM_DIR/fail_socket.so" "$SHIM_DIR/fail_socket.c" 2>/dev/null; then
+    RUNNER="env LD_PRELOAD=$SHIM_DIR/fail_socket.so ASAN_OPTIONS=verify_asan_link_order=0:detect_leaks=0"
+    run_scan "$HOST" -p 80-82
+    RUNNER=""
+    expect "socket() failing: scan completes and every port is counted" 3 0 0
+else
+    echo "  skip  (could not build the socket() shim; gcc needed)"
+fi
+rm -rf "$SHIM_DIR"
 
 echo "== listener goes away =="
 stop_listener "$PORT_C"
