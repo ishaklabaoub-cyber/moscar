@@ -90,9 +90,9 @@ int main(int argc, char *argv[])
     }
 
     // initializing counters
-    open_count   = 0;
-    closed_count = 0;
-    filtered_count = 0;
+    open_count        = 0;
+    closed_count      = 0;
+    filtered_count    = 0;
     unreachable_count = 0;
     
 
@@ -252,7 +252,7 @@ enum port_state scan_port(int socket_fd,const char *input_addr,long port)
     addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);	
 	if( inet_pton(AF_INET, input_addr, &addr.sin_addr) != 1){
-		fprintf(stderr,"INVALID IP ADDRESS : %s\n",input_addr);
+		fprintf(stderr, "INVALID IP ADDRESS : %s\n",input_addr);
 		perror("inet_pton");
 		close(socket_fd);
     }
