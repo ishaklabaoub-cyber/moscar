@@ -2,10 +2,11 @@
 
 
 ## Task 1: make the counters always add up:
-- Right now case _UNDEFINED and a failed socket() skip the counters. Do it test#first:    
+- Right now case _UNDEFINED and a failed socket() skip the counters. Do it test-first:    
+
 
 1. Reproduce the socket() failure. Starve the process of file descriptors, so socket() fails with EMFILE:
-   ( ulimit #n 3; ./moscar 127.0.0.1 #p 80#82 )
+   ( ulimit -n 3; ./moscar 127.0.0.1 -p 80-82 )
 
 See what the summary says. Write down what it should say.
 2. Decide on the new counter. An errors bucket is the simplest. Add its label to run_tests.sh (an ERRORS_LABEL, included in the total in base_checks), and add the failing test above.
