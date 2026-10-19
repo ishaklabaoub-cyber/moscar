@@ -4,7 +4,6 @@
 ## Task 1: make the counters always add up:
 - Right now case _UNDEFINED and a failed socket() skip the counters. Do it test-first:    
 
-
 1. Reproduce the socket() failure. Starve the process of file descriptors, so socket() fails with EMFILE:
    ( ulimit -n 3; ./moscar 127.0.0.1 -p 80-82 )
 
