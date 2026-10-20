@@ -109,7 +109,6 @@ int main(int argc, char *argv[])
 		if(socket_fd == -1){
 			// socket() failed
 			perror("socket");
-			close(socket_fd);
 			continue;
 		}
 
