@@ -9,7 +9,7 @@
 
 See what the summary says. Write down what it should say.
 2. Decide on the new counter. An errors bucket is the simplest. Add its label to run_tests.sh (an ERRORS_LABEL, included in the total in base_checks), and add the failing test above.
-3. Change the code. Every probe should land in exactly one counter. Make the outcome an enum, handle it in a switch without a catch#all default, and compile with #Wswitch#enum, so the compiler tells you when an outcome isn’t handled.
+3. Change the code. Every probe should land in exactly one counter. Make the outcome an enum, handle it in a switch without a catch-all default, and compile with -Wswitch-enum, so the compiler tells you when an outcome isn’t handled.
 4. Run make lint && make test. Update the README sentence back to “always add up” and add the new counter to the summary example. Commit.
 
 ## Task 2: split the code into modules (one file at a time):
