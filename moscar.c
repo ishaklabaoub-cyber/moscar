@@ -77,6 +77,7 @@ option_entry opt_prop[3] = {                    /* returns values meanings: 1 ->
 int main(int argc, char *argv[])
 {
     int    open_count, closed_count, filtered_count, unreachable_count, error_count;    
+    int    prev_err = 0;
     enum   port_state p_state;
     struct config cofg = { 0, NULL, 0L, 0L};
 	int    socket_fd;				        /* socket file descriptor */
@@ -109,8 +110,9 @@ int main(int argc, char *argv[])
 		socket_fd = socket(AF_INET,SOCK_STREAM,0);		/* creating an endpoint */
 		if(socket_fd == -1){
 			// socket() failed
-			perror("socket");
+            if(prev_err != errno)perror("socket");
 		    error_count++;
+			prev_err = errno;
             continue;
         }
 

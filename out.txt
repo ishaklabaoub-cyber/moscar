@@ -1,0 +1,4 @@
+socket: Too many open files
+127.0.0.1 is a valid IPv4 address.
+
+SUMMARY: ports scanned[3] { open ports[0], closed ports[0], filtered ports[0], unreachable ports[0], errors[3]} --> time taken: [0.00 s]
