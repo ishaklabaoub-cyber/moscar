@@ -54,7 +54,7 @@ $ ./moscar 127.0.0.1 -p 18089-18091
 127.0.0.1 is a valid IPv4 address.
 port 18090 is open on 127.0.0.1
 
-SUMMARY: ports scanned[3] { open ports[1], closed ports[2], filtered ports[0], unreachable ports[0]} --> time taken: [0.00 s]
+SUMMARY: ports scanned[3] { open ports[1], closed ports[2], filtered ports[0], unreachable ports[0], errors[0]} --> time taken: [0.00 s]
 ```
 
 Only open ports are listed. Everything else is counted in the summary.

@@ -76,7 +76,7 @@ option_entry opt_prop[3] = {                    /* returns values meanings: 1 ->
 
 int main(int argc, char *argv[])
 {
-    int    open_count, closed_count, filtered_count, unreachable_count;    
+    int    open_count, closed_count, filtered_count, unreachable_count, error_count;    
     enum   port_state p_state;
     struct config cofg = { 0, NULL, 0L, 0L};
 	int    socket_fd;				        /* socket file descriptor */
@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
     closed_count      = 0;
     filtered_count    = 0;
     unreachable_count = 0;
+    error_count       = 0;
     
 
     if(cofg.port_max == 0 && cofg.port_min == 0) {
@@ -109,8 +110,9 @@ int main(int argc, char *argv[])
 		if(socket_fd == -1){
 			// socket() failed
 			perror("socket");
-			continue;
-		}
+		    error_count++;
+            continue;
+        }
 
         p_state = scan_port(socket_fd, cofg.input_addr, port);
         switch(p_state) {
@@ -130,9 +132,11 @@ int main(int argc, char *argv[])
                 break;
             case _UNDEFINED:
 			    printf("The error is beyond these errors( ENETUNREACH, ETIMEDOUT, ECONNREFUSED)\n");		
+                error_count++;
                 break;
             case _ERROR:
-                return 1;
+                error_count++;
+                break;
             default:
                 fprintf(stderr, "INVALID PORT STATE.\n");
                 break;
@@ -147,8 +151,8 @@ int main(int argc, char *argv[])
     long ports_scanned = cofg.port_max - cofg.port_min +1;
 
     // SUMMARY
-    printf("\nSUMMARY: ports scanned[%ld] { open ports[%d], closed ports[%d], filtered ports[%d], unreachable ports[%d]} --> time taken: [%.2lf s]\n", 
-                       ports_scanned, open_count, closed_count, filtered_count, unreachable_count, time_taken);
+    printf("\nSUMMARY: ports scanned[%ld] { open ports[%d], closed ports[%d], filtered ports[%d], unreachable ports[%d], errors[%d]} --> time taken: [%.2lf s]\n", 
+                       ports_scanned, open_count, closed_count, filtered_count, unreachable_count, error_count, time_taken);
 	return 0;
 }
 

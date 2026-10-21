@@ -29,7 +29,7 @@ OPEN_LABEL="open ports"
 CLOSED_LABEL="closed ports"
 FILTERED_LABEL="filtered ports"
 UNREACHABLE_LABEL="unreachable ports"
-ERRORS_LABEL="error ports"       # v0.2: probes that ended in an unexpected error (match your summary)
+ERRORS_LABEL="errors"       # v0.2: probes that ended in an unexpected error (match your summary)
 
 # Decisions about YOUR program's behavior. Change them here when you change the program.
 HELP_EXIT=1             # exit code after --help / -h (many tools use 0)
@@ -308,6 +308,19 @@ if unshare -rn true 2>/dev/null; then       # needs unprivileged user namespaces
         || fail "no route: all 3 ports counted unreachable" "unreachable=${U:-missing}"
 else
     echo "  skip  (unshare -rn is not available on this system)"
+fi
+
+echo "== file descriptor leaks =="
+# With only 16 descriptors allowed, scanning 300 ports works only if every
+# socket is closed before the next probe. A leak shows up as errors or a
+# summary that does not add up.
+if command -v prlimit >/dev/null; then
+    RUNNER="prlimit --nofile=16"
+    run_scan "$HOST" -p 1-300
+    RUNNER=""
+    expect "300 ports under a 16-descriptor limit (no socket leak)" 300 - -
+else
+    echo "  skip  (prlimit not available)"
 fi
 
 echo "== socket() failure =="
