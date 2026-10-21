@@ -85,9 +85,8 @@ Setting port range to [20,80].
 | **closed** | The host actively refused the connection. |
 | **filtered** | No answer within 300 ms. A firewall may be dropping packets, but see the note below. |
 | **unreachable** | The network or host could not be reached (no route). |
-
-The four counters add up to `ports scanned`. The exception is a probe that
-ends in an unexpected error: it is reported on screen but not counted.
+| **errors** | The probe could not run or ended in an unexpected error. | 
+The five counters always add up to `ports scanned`.
 
 > **A "filtered" result is a weak signal.** It only means no reply arrived
 > within 300 ms. A single lost packet can cause it, and moscar does not retry
