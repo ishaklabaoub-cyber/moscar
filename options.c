@@ -30,6 +30,11 @@ int  port_ran(const char *arg, struct config *cfg)
     char *token;
     char **endptr = 0;
     int  i = 0;
+    if(str == NULL) {
+        perror("perror");
+        return -1;
+    }
+
 
     token = strtok(str, TOK_DELIM);
     while(token != NULL && i < 2) {
@@ -133,7 +138,7 @@ int exec_opt(char *option, char *arg, struct config *cofg)
        return -1;
 }
 
-static char  *check_opt(char *arg)
+char  *check_opt(char *arg)
 {
     char option[MAX_CAP];
     int j = 0;
@@ -169,7 +174,7 @@ int help_opt(const char *arg, struct config *cfg)
 }
 
 // defining options and their properties
-const option_entry opt_prop[] = {                    /* returns values meanings: 1 -> program should exit , -1 -> error detected program must exit, 0 -> success */
+option_entry opt_prop[] = {                    /* returns values meanings: 1 -> program should exit , -1 -> error detected program must exit, 0 -> success */
 
     {"-help", 'h', 0, &help_opt, "- Displaying options.\n. Usage: ./moscar [--help | -h]\n"},
     {"-port", 'p', 1, &port_ran, "- Setting the port range needed to scan.\n. Usage: ./moscar <ipv4> [--port | -p] [N | N,M | N-M]\n"},
