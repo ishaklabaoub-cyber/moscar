@@ -1,0 +1,26 @@
+#ifndef  UTILS_H
+#define UTILS_H
+
+#define TOK_DELIM " -"
+#define MAX_CAP   100
+#define MIN_PORT  1
+#define MAX_PORT  65535 
+
+struct config {
+    int takes_args;
+    char *input_addr;
+    long port_max;
+    long port_min;
+};
+
+enum prog_state {
+    _ERR    = 01,               // error occured must terminate the program
+    _EXIT   = 02,               // should exit the program due to an option like --help or -h(it should display exit)           
+    _WAIT   = 04,               // program should wait
+    _RESUME = 16                // program should continue executing 
+};
+
+static int  is_valid_ipv4(const char*);                    // CHECK FOR A VALID IPv4 ADDRESS
+static int  isthere_digits(const char*);                   // CHECK IF THERE IS DIGITS IN A STRING
+
+#endif
