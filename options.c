@@ -101,6 +101,40 @@ int  port_ran(const char *arg, struct config *cfg)
     return 0;
 }
 
+char  *check_opt(char *arg)
+{
+    char option[MAX_CAP];
+    int j = 0;
+    if(arg[1] == '-') {
+        
+        option[j++] = '-';
+        for(int i = 2; isalpha(arg[i]) && j < MAX_CAP-1; ++i) {
+            option[j++] = arg[i];
+        }
+        option[j] = '\0';
+    
+    } else if(isalpha(arg[1])) {
+    
+        for(int i = 1; isalpha(arg[i]) && j < MAX_CAP-1; ++i) {
+            option[j++] = arg[i];
+        }
+        option[j] = '\0';
+    
+    } else {
+        return NULL;
+    }
+    return strdup(option);
+}
+int help_opt(const char *arg, struct config *cfg) 
+{
+    (void)arg;
+    (void)cfg;
+    printf("\n\t\t Moscar's options:\n");
+    for(int i = 0;opt_prop[i].description != NULL; ++i) {
+        printf("%s", opt_prop[i].description);
+    }
+    return 1;
+}
 int exec_opt(char *option, char *arg, struct config *cofg) 
 {
     if(option == NULL) {
@@ -137,42 +171,6 @@ int exec_opt(char *option, char *arg, struct config *cofg)
        fprintf(stderr,"for help: --help or -h.\n");
        return -1;
 }
-
-char  *check_opt(char *arg)
-{
-    char option[MAX_CAP];
-    int j = 0;
-    if(arg[1] == '-') {
-        
-        option[j++] = '-';
-        for(int i = 2; isalpha(arg[i]) && j < MAX_CAP-1; ++i) {
-            option[j++] = arg[i];
-        }
-        option[j] = '\0';
-    
-    } else if(isalpha(arg[1])) {
-    
-        for(int i = 1; isalpha(arg[i]) && j < MAX_CAP-1; ++i) {
-            option[j++] = arg[i];
-        }
-        option[j] = '\0';
-    
-    } else {
-        return NULL;
-    }
-    return strdup(option);
-}
-int help_opt(const char *arg, struct config *cfg) 
-{
-    (void)arg;
-    (void)cfg;
-    printf("\n\t\t Moscar's options:\n");
-    for(int i = 0;opt_prop[i].description != NULL; ++i) {
-        printf("%s", opt_prop[i].description);
-    }
-    return 1;
-}
-
 // defining options and their properties
 option_entry opt_prop[] = {                    /* returns values meanings: 1 -> program should exit , -1 -> error detected program must exit, 0 -> success */
 

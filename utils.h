@@ -20,7 +20,7 @@ enum prog_state {
     _RESUME = 16                // program should continue executing 
 };
 
-static int  is_valid_ipv4(const char*);                    // CHECK FOR A VALID IPv4 ADDRESS
-static int  isthere_digits(const char*);                   // CHECK IF THERE IS DIGITS IN A STRING
+int  is_valid_ipv4(const char*);                    // CHECK FOR A VALID IPv4 ADDRESS
+int  isthere_digits(const char*);                   // CHECK IF THERE IS DIGITS IN A STRING
 
 #endif

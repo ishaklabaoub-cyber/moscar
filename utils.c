@@ -4,13 +4,13 @@
 #include <ctype.h>
 #include "utils.h"
 
-static int is_valid_ipv4(const char *src)
+int is_valid_ipv4(const char *src)
 {
 	struct sockaddr_in dst;
 
 	return inet_pton(AF_INET, src, &dst);
 }
-static int  isthere_digits(const char *arg) 
+int  isthere_digits(const char *arg) 
 {
     size_t len = strlen(arg);
     for(int i = 0; i < (int)len; ++i) {
