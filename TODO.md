@@ -13,7 +13,7 @@ See what the summary says. Write down what it should say.
 4. Run make lint && make test. Update the README sentence back to “always add up” and add the new counter to the summary example. Commit.
 
 
-
+// TASK 2 DONE :)
 ## Task 2: split the code into modules (one file at a time):
 # Aim for ports.c/.h (parsing and the port set), scan.c/.h (scan_port and the enum), output.c/.h (summary and printing), options.c/.h (the option table and handlers), and a short main.c.
 
