@@ -4,3 +4,5 @@
 
 # Add a new counter "error_count" in order to always add up in the summary , it gets incremented when a socket() failed or the _UNDEFINED and _ERROR cases returned from port_state() so the ports counters always add up.
 
+
+# Separate the project into headers (parsing.h(parsing funcs), utils.h(config structs-prog state-and some funcs), options.h, scan.h) implementation files (parsing.c, utils.c, options.c, scan.c)
