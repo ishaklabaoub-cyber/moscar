@@ -6,7 +6,7 @@
 #include "options.h"
 #include "utils.h"
 
-
+/* gotta use the endptr of the strtol to define if the user enter the port range as a list(20,80 --> scan just 20 and 80) or a range(20-80 --> scan 20 to 80) */
 
 int  port_ran(const char *arg, struct config *cfg)
 {
