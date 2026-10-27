@@ -35,9 +35,15 @@ int  port_ran(const char *arg, struct config *cfg)
         return -1;
     }
     
-    strtol(str, endptr, 10);
+    strtol(str, &endptr, 10);
 
-    if(endptr[0] == ',')
+
+    // UNFINISHED :)
+    if(endptr[0] == ',') {
+        cfg->list_port = 1;
+    } else{
+        ;
+    }
 
 
     token = strtok(str, TOK_DELIM);
