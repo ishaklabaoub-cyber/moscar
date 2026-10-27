@@ -8,6 +8,7 @@
 
 struct config {
     int takes_args;
+    int list_port;
     char *input_addr;
     long port_max;
     long port_min;

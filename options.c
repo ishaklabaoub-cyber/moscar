@@ -6,7 +6,7 @@
 #include "options.h"
 #include "utils.h"
 
-/* gotta use the endptr of the strtol to define if the user enter the port range as a list(20,80 --> scan just 20 and 80) or a range(20-80 --> scan 20 to 80) */
+/* gotta use the endptr of the strtol to define if the user entered the port range as a list(20,80 --> scan just 20 and 80) or a range(20-80 --> scan 20 to 80) */
 
 int  port_ran(const char *arg, struct config *cfg)
 {
@@ -28,12 +28,16 @@ int  port_ran(const char *arg, struct config *cfg)
     char *str = strdup(arg);
     char *tokens[2];
     char *token;
-    char **endptr = 0;
+    char *endptr = NULL;
     int  i = 0;
     if(str == NULL) {
-        perror("perror");
+        perror("strdup");
         return -1;
     }
+    
+    strtol(str, endptr, 10);
+
+    if(endptr[0] == ',')
 
 
     token = strtok(str, TOK_DELIM);
@@ -52,32 +56,31 @@ int  port_ran(const char *arg, struct config *cfg)
 
     /* checking if the tokens are valid to pass them to strtol() */
     for(int j = 0;j < i; ++j) {
-        if(strtol(tokens[j], endptr, 10) == LONG_MAX ||
-           strtol(tokens[j], endptr, 10) == LONG_MIN ||   
-           strtol(tokens[j], endptr, 10) == 0      ) {
+        if(strtol(tokens[j], &endptr, 10) == LONG_MAX ||
+           strtol(tokens[j], &endptr, 10) == LONG_MIN ||   
+           strtol(tokens[j], &endptr, 10) == 0      ) {
             free(str);
             str = NULL;
             return -1;
         }
     }
     if(i == 2){
-        p_min = strtol(tokens[1], endptr, 10);
-        p_max = strtol(tokens[0], endptr, 10);
-        
+        p_min = strtol(tokens[1], &endptr, 10);
+        p_max = strtol(tokens[0], &endptr, 10);
+    
         if(p_min < MIN_PORT) {      // Checking bounds
             p_min = MIN_PORT;
         } else if(p_max > MAX_PORT){
             p_max = MAX_PORT;
         }
     } else if(i == 1){
-        if((p_min = p_max = strtol(tokens[0], endptr, 10)) == 0) {
+        if((p_min = p_max = strtol(tokens[0], &endptr, 10)) == 0) {
             fprintf(stderr, "port_ran: passed an invalid port range '%s' (expected N or N-M, e.g. 80 or 20-80).\n", arg);
             fprintf(stderr, "Usage: --help or -h for Usage.\n");
             free(str);
             str = NULL;
             return -1;
         }
-        
         if(p_min < MIN_PORT) {
             p_min = p_max = MIN_PORT;
         } else if(p_max > MAX_PORT){
