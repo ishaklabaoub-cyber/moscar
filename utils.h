@@ -2,7 +2,8 @@
 #define UTILS_H
 
 #define TOK_DELIM " -"
-#define MAX_CAP   100
+#define LIS_DELIM " ,"
+#define MAX_CAP   640000
 #define MIN_PORT  1
 #define MAX_PORT  65535 
 

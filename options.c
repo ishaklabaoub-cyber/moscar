@@ -29,7 +29,7 @@ int  port_ran(const char *arg, struct config *cfg)
     char *tokens[2];
     char *token;
     char *endptr = NULL;
-    int  i = 0;
+    int  i;
     if(str == NULL) {
         perror("strdup");
         return -1;
@@ -41,11 +41,26 @@ int  port_ran(const char *arg, struct config *cfg)
     // UNFINISHED :)
     if(endptr[0] == ',') {
         cfg->list_port = 1;
-    } else{
-        ;
+    } else if(endptr[0] == '-'){
+        cfg->list_port = 0;
+    } else {
+        cfg->list_port = 0;
+        fprintf(stderr, "Invalid port range or list.\n");
+        return -1;
     }
 
 
+    if(cfg->list_port == 1) {
+        i = 0;
+        char *list_tokens[MAX_CAP];
+        token = strtok(str, LIS_DELIM);
+        while(token != NULL) {
+            list_tokens[i++] = token;   
+            token = strtok(NULL, LIS_DELIM);
+        }
+    }
+
+    i = 0;
     token = strtok(str, TOK_DELIM);
     while(token != NULL && i < 2) {
         tokens[i++] = token;    
@@ -54,7 +69,7 @@ int  port_ran(const char *arg, struct config *cfg)
     
     /* checking bounds of tokens */
     if(i > 2) {
-        fprintf(stderr, "too many port numbers.\nUsage: -p or --port int,int\n");
+        fprintf(stderr, "too many port numbers.\nUsage: -p or --port int-int\n");
         free(str);
         str = NULL;
         return -1;
