@@ -29,99 +29,119 @@ int  port_ran(const char *arg, struct config *cfg)
     char *tokens[2];
     char *token;
     char *endptr = NULL;
-    int  i;
+    int  i, j, o;
     if(str == NULL) {
         perror("strdup");
         return -1;
     }
-    
-    strtol(str, &endptr, 10);
 
-
-    // UNFINISHED :)
-    if(endptr[0] == ',') {
-        cfg->list_port = 1;
-    } else if(endptr[0] == '-'){
-        cfg->list_port = 0;
-    } else {
-        cfg->list_port = 0;
-        fprintf(stderr, "Invalid port range or list.\n");
-        return -1;
+    cfg->list_port = 0;
+    for(i = 0;str[i] != '\0'; ++i) {
+        if(str[i] == ',') {
+            cfg->list_port = 1;
+            break;
+        }
     }
-
-
+    /* UNFINISHED */
+    /* TODO: convert the port range to numbers using strtol() then assign them to ran_port array */
     if(cfg->list_port == 1) {
         i = 0;
         char *list_tokens[MAX_CAP];
+        
+
+        /* tokenize with (,) delimiter first then separate single port number from ranges */
         token = strtok(str, LIS_DELIM);
         while(token != NULL) {
             list_tokens[i++] = token;   
             token = strtok(NULL, LIS_DELIM);
         }
-    }
+        list_tokens[i] = NULL;
+        
+        j = 0, o = 0;
+        for(i = 0;list_tokens[i] != NULL ;++i){
+            long v = strtol(list_tokens[i], &endptr, 10);
 
-    i = 0;
-    token = strtok(str, TOK_DELIM);
-    while(token != NULL && i < 2) {
-        tokens[i++] = token;    
-        token = strtok(NULL, TOK_DELIM);
-    }
+            if(endptr == NULL) {
+              cfg->s_port[j++] = v;  
+            } else if(endptr[0] == '-') {
+               token = strtok(list_tokens[i], TOK_DELIM);
+               while(token != NULL) {
+                    tokens[o++] = token;
+                    strtok(NULL, TOK_DELIM);
+               }
+            } else {
+                fprintf(stderr, "Invalid port range or number.\n");
+                free(str);
+                str = NULL;
+                return -1;
+            }
+        }
+
+    }else if(cfg->list_port == 0){
+
+        i = 0;
+        token = strtok(str, TOK_DELIM);
+        while(token != NULL && i < 2) {
+            tokens[i++] = token;    
+            token = strtok(NULL, TOK_DELIM);
+        }
     
-    /* checking bounds of tokens */
-    if(i > 2) {
-        fprintf(stderr, "too many port numbers.\nUsage: -p or --port int-int\n");
-        free(str);
-        str = NULL;
-        return -1;
-    }
-
-    /* checking if the tokens are valid to pass them to strtol() */
-    for(int j = 0;j < i; ++j) {
-        if(strtol(tokens[j], &endptr, 10) == LONG_MAX ||
-           strtol(tokens[j], &endptr, 10) == LONG_MIN ||   
-           strtol(tokens[j], &endptr, 10) == 0      ) {
+        /* checking bounds of tokens */
+        if(i > 2) {
+            fprintf(stderr, "too many port numbers.\nUsage: -p or --port int-int\n");
             free(str);
             str = NULL;
             return -1;
         }
-    }
-    if(i == 2){
-        p_min = strtol(tokens[1], &endptr, 10);
-        p_max = strtol(tokens[0], &endptr, 10);
-    
-        if(p_min < MIN_PORT) {      // Checking bounds
-            p_min = MIN_PORT;
-        } else if(p_max > MAX_PORT){
-            p_max = MAX_PORT;
+
+        /* checking if the tokens are valid to pass them to strtol() */
+        for(int j = 0;j < i; ++j) {
+            if(strtol(tokens[j], &endptr, 10) == LONG_MAX ||
+            strtol(tokens[j], &endptr, 10) == LONG_MIN ||   
+            strtol(tokens[j], &endptr, 10) == 0      ) {
+                free(str);
+                str = NULL;
+                return -1;
+            }
         }
-    } else if(i == 1){
-        if((p_min = p_max = strtol(tokens[0], &endptr, 10)) == 0) {
-            fprintf(stderr, "port_ran: passed an invalid port range '%s' (expected N or N-M, e.g. 80 or 20-80).\n", arg);
-            fprintf(stderr, "Usage: --help or -h for Usage.\n");
+        if(i == 2){
+            p_min = strtol(tokens[1], &endptr, 10);
+            p_max = strtol(tokens[0], &endptr, 10);
+    
+            if(p_min < MIN_PORT) {      // Checking bounds
+                p_min = MIN_PORT;
+            } else if(p_max > MAX_PORT){
+                p_max = MAX_PORT;
+            }
+        } else if(i == 1){
+            if((p_min = p_max = strtol(tokens[0], &endptr, 10)) == 0) {
+                fprintf(stderr, "port_ran: passed an invalid port range '%s' (expected N or N-M, e.g. 80 or 20-80).\n", arg);
+                fprintf(stderr, "Usage: --help or -h for Usage.\n");
+                free(str);
+                str = NULL;
+                return -1;
+            }
+            if(p_min < MIN_PORT) {
+                p_min = p_max = MIN_PORT;
+            } else if(p_max > MAX_PORT){
+                p_min = p_max = MAX_PORT;
+            }       
+        } else { 
+            // an error occurred
             free(str);
             str = NULL;
             return -1;
         }
-        if(p_min < MIN_PORT) {
-            p_min = p_max = MIN_PORT;
-        } else if(p_max > MAX_PORT){
-            p_min = p_max = MAX_PORT;
-        } 
-    } else { 
-        // an error occurred
+        if(p_min > p_max) {
+                long temp = p_min;
+                p_min = p_max;
+                p_max = temp;
+        }
+        cfg->port_min = p_min;
+        cfg->port_max = p_max;
         free(str);
         str = NULL;
-        return -1;
     }
-    if(p_min > p_max) {
-            long temp = p_min;
-            p_min = p_max;
-            p_max = temp;
-    }
-    cfg->port_min = p_min;
-    cfg->port_max = p_max;
-    free(str);
-    str = NULL;
     return 0;
 }
 
