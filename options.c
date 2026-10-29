@@ -13,8 +13,8 @@ int  port_ran(const char *arg, struct config *cfg)
     if(arg == NULL) {
         // default port range if nothing -p or --port has 0 arguments passed
         fprintf(stderr, "port_ran: arg passed empty.\nSetting port range to [20,80].\n");
-        cfg->port_min = 20;
-        cfg->port_max = 80;
+        cfg->ran_port[0] = 20;
+        cfg->ran_port[1] = 80;
         return 0;
     } else {
         if(!isthere_digits(arg)) {
@@ -24,7 +24,7 @@ int  port_ran(const char *arg, struct config *cfg)
     }
    
     
-    long p_max,p_min;
+    long p_max, p_min, v;
     char *str = strdup(arg);
     char *tokens[2];
     char *token;
@@ -42,8 +42,7 @@ int  port_ran(const char *arg, struct config *cfg)
             break;
         }
     }
-    /* UNFINISHED */
-    /* TODO: convert the port range to numbers using strtol() then assign them to ran_port array */
+
     if(cfg->list_port == 1) {
         i = 0;
         char *list_tokens[MAX_CAP];
@@ -53,24 +52,37 @@ int  port_ran(const char *arg, struct config *cfg)
         token = strtok(str, LIS_DELIM);
         while(token != NULL) {
             list_tokens[i++] = token;   
-            token = strtok(NULL, LIS_DELIM);
+            token = strtok(NULL, LIS_DELIM);    
         }
         list_tokens[i] = NULL;
         
         j = 0, o = 0;
-        for(i = 0;list_tokens[i] != NULL ;++i){
-            long v = strtol(list_tokens[i], &endptr, 10);
+        for(i = 0 ;list_tokens[i] != NULL ;++i){
+            v = strtol(list_tokens[i], &endptr, 10);
 
-            if(endptr == NULL) {
-              cfg->s_port[j++] = v;  
-            } else if(endptr[0] == '-') {
-               token = strtok(list_tokens[i], TOK_DELIM);
-               while(token != NULL) {
-                    tokens[o++] = token;
+            if(endptr == NULL) { // Valid single number 
+                                 
+                cfg->s_port[j++] = v; 
+              
+            } else if(endptr[0] == '-') { // '-' indicates a range
+               
+                token = strtok(list_tokens[i], TOK_DELIM);
+                while(token != NULL) {
+                    // assigning port values while tokenizing
+                    v = strtol(token, &endptr, 10);
+                    if(endptr == NULL) {
+                        cfg->ran_port[o++] = v;
+                    } else {
+                        fprintf(stderr, "Invalid port range.\n");
+                        free(str);
+                        str = NULL;
+                        return -1;
+                    }
                     strtok(NULL, TOK_DELIM);
-               }
+                }
+
             } else {
-                fprintf(stderr, "Invalid port range or number.\n");
+                //fprintf(stderr, "Invalid port range or number.\n");
                 free(str);
                 str = NULL;
                 return -1;
@@ -137,8 +149,12 @@ int  port_ran(const char *arg, struct config *cfg)
                 p_min = p_max;
                 p_max = temp;
         }
-        cfg->port_min = p_min;
-        cfg->port_max = p_max;
+        if(p_min == p_max){
+            cfg->ran_port[0] = p_min;
+        }else {
+            cfg->ran_port[0] = p_min;
+            cfg->ran_port[1] = p_max;
+        }
         free(str);
         str = NULL;
     }

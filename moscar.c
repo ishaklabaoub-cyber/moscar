@@ -10,9 +10,10 @@
 int main(int argc, char *argv[])
 {
     int    open_count, closed_count, filtered_count, unreachable_count, error_count;    
+    long   ports_scanned, port;
     int    prev_err = 0;
     enum   port_state p_state;
-    struct config cofg = { 0, NULL, 0L, 0L};
+    struct config cofg = {{0},{0}, 0, 0, NULL, 0L, 0L};
 	int    socket_fd;				        /* socket file descriptor */
     struct timespec start_time,end_time;    /* for calculating proccess time */
 
@@ -29,18 +30,27 @@ int main(int argc, char *argv[])
     filtered_count    = 0;
     unreachable_count = 0;
     error_count       = 0;
-    
+    ports_scanned     = 0L;
 
-    if(cofg.port_max == 0 && cofg.port_min == 0) {
+    
+    if(cofg.ran_port[0] == 0 && cofg.ran_port[1] == 0) {
         // if an IP address passed and nothing after it
-        fprintf(stderr, "No port range is set.\nSetting port range to [20,80].\n");
-        cofg.port_min = 20;
-        cofg.port_max = 80;
+        fprintf(stderr, "No port range is set.\nSetting port range to [20-80].\n");
+        cofg.ran_port[0] = 20;
+        cofg.ran_port[1] = 80;
     }
 
-    for(long port = cofg.port_min; port <= cofg.port_max; ++port){
-		
-		socket_fd = socket(AF_INET,SOCK_STREAM,0);		/* creating an endpoint */
+    for(int i = 0; cofg.ran_port[i] != 0 || cofg.s_port[i] != 0; ++i){
+	    if(cofg.list_port == 1) {
+            if(cofg.s_port[i] != 0) {
+                port = cofg.s_port[i];
+            }else {
+                port = cofg.ran_port[i];
+            }
+        } else {
+            port = cofg.ran_port[i];
+        }
+		socket_fd = socket(AF_INET, SOCK_STREAM, 0);		/* creating an endpoint */
 		if(socket_fd == -1){
 			// socket() failed
             if(prev_err != errno)perror("socket");
@@ -76,6 +86,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "INVALID PORT STATE.\n");
                 break;
         }
+        ports_scanned++;
 	}
 
 
@@ -83,7 +94,6 @@ int main(int argc, char *argv[])
     
     double time_taken = (end_time.tv_sec - start_time.tv_sec) + (double)(end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0;
     
-    long ports_scanned = cofg.port_max - cofg.port_min +1;
 
     // SUMMARY
     printf("\nSUMMARY: ports scanned[%ld] { open ports[%d], closed ports[%d], filtered ports[%d], unreachable ports[%d], errors[%d]} --> time taken: [%.2lf s]\n", 
