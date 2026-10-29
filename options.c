@@ -18,7 +18,7 @@ int  port_ran(const char *arg, struct config *cfg)
         return 0;
     } else {
         if(!isthere_digits(arg)) {
-            fprintf(stderr, "You did not pass a valid port numbers '%s' (expected N or N-M, e.g. 80 or 20-80).\n",arg);
+            fprintf(stderr, "You did not pass a valid port numbers '%s' (expected N or N-M or [N,N-M] as a list, e.g. 80 or 20-80 || 20,50-80).\n",arg);
             return -1; 
         }
     }
@@ -59,18 +59,24 @@ int  port_ran(const char *arg, struct config *cfg)
         j = 0, o = 0;
         for(i = 0 ;list_tokens[i] != NULL ;++i){
             v = strtol(list_tokens[i], &endptr, 10);
-
-            if(endptr == NULL) { // Valid single number 
+            
+            if(endptr[0] == '\0')printf("\t\tendptr is  NULL\n");
+            printf("\t\tDEBUG: endptr[%s]\n", endptr);
+            printf("\t\tDEBUG: list_tokens[%s]\n", list_tokens[i]);
+            printf("\t\tDEBUG: v[%ld]\n", v);
+            if(endptr[0] == '\0' && j < MAX_PORT) { // Valid single number 
                                  
                 cfg->s_port[j++] = v; 
               
             } else if(endptr[0] == '-') { // '-' indicates a range
-               
+                
                 token = strtok(list_tokens[i], TOK_DELIM);
                 while(token != NULL) {
                     // assigning port values while tokenizing
                     v = strtol(token, &endptr, 10);
-                    if(endptr == NULL) {
+                    printf("\t\tDEBUG: v = %ld\n", v);
+                    if(endptr[0] == '\0' && o < MAX_PORT) {
+                        printf("\t\t\they\n");
                         cfg->ran_port[o++] = v;
                     } else {
                         fprintf(stderr, "Invalid port range.\n");
@@ -78,7 +84,7 @@ int  port_ran(const char *arg, struct config *cfg)
                         str = NULL;
                         return -1;
                     }
-                    strtok(NULL, TOK_DELIM);
+                   token = strtok(NULL, TOK_DELIM);
                 }
 
             } else {

@@ -9,6 +9,7 @@
 
 int main(int argc, char *argv[])
 {
+    int    start_f = 0;
     int    open_count, closed_count, filtered_count, unreachable_count, error_count;    
     long   ports_scanned, port;
     int    prev_err = 0;
@@ -33,23 +34,55 @@ int main(int argc, char *argv[])
     ports_scanned     = 0L;
 
     
-    if(cofg.ran_port[0] == 0 && cofg.ran_port[1] == 0) {
+    if(cofg.ran_port[0] == 0 && cofg.ran_port[1] == 0 && cofg.s_port[0] == 0 && cofg.s_port[1] == 0) {
         // if an IP address passed and nothing after it
         fprintf(stderr, "No port range is set.\nSetting port range to [20-80].\n");
         cofg.ran_port[0] = 20;
         cofg.ran_port[1] = 80;
+        cofg.list_port = 0;
     }
 
-    for(int i = 0; cofg.ran_port[i] != 0 || cofg.s_port[i] != 0; ++i){
+    for(int i = 0,j = 0; ; ++i){
 	    if(cofg.list_port == 1) {
-            if(cofg.s_port[i] != 0) {
+            if(cofg.s_port[i] != 0 && i < MAX_PORT) {
                 port = cofg.s_port[i];
             }else {
-                port = cofg.ran_port[i];
+                if(j > MAX_PORT){
+                    fprintf(stderr, "main: index exceeds the array's range.\n");
+                    return -1;
+                }
+                if(start_f == 0) {
+                    port = cofg.ran_port[j];
+                    start_f = 1;
+                } else if(start_f == 1) {
+                    if(port + 1 == cofg.ran_port[j + 1] + 1){
+                        j++;
+                        start_f = 0;
+                    }
+                    if(cofg.ran_port[j] == 0){
+                        break;
+                    }
+                    if(start_f)port++;
+                } else {
+                    fprintf(stderr,"main: index exceeds the array's range.\n");
+                    return -1;
+                }
             }
         } else {
-            port = cofg.ran_port[i];
+            if(i > MAX_PORT){
+                fprintf(stderr, "main: index exceeds the array's range.\n");
+                return -1;
+            }
+            if(start_f == 0){    
+                port = cofg.ran_port[j];
+                start_f = 1;
+            } else{
+                if(port + 1 == cofg.ran_port[j + 1] + 1)break;
+                port++;
+            }
         }
+        
+        printf("\t\tmain DEBUG: port[%ld] j[%d]\n", port, j);
 		socket_fd = socket(AF_INET, SOCK_STREAM, 0);		/* creating an endpoint */
 		if(socket_fd == -1){
 			// socket() failed
