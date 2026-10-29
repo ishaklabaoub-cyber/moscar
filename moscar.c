@@ -62,7 +62,10 @@ int main(int argc, char *argv[])
                     if(cofg.ran_port[j] == 0){
                         break;
                     }
-                    if(start_f)port++;
+                    if(start_f == 0){
+                        continue;
+                    }
+                    port++;
                 } else {
                     fprintf(stderr,"main: index exceeds the array's range.\n");
                     return -1;
