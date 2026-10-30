@@ -161,9 +161,11 @@ int  port_ran(const char *arg, struct config *cfg)
             cfg->ran_port[0] = p_min;
             cfg->ran_port[1] = p_max;
         }
+    }
         free(str);
         str = NULL;
-    }
+    
+
     return 0;
 }
 
