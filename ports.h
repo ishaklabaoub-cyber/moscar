@@ -3,13 +3,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-typedef unsigned short int16;
-typedef unsigned char  int8;
-typedef int16 bitmap;
+typedef u_int16_t bitmap;
 
-
-void zero(int16*,int16);
-bitmap *mkbmp(int16);
+bool getbit(uint16_t*,uint8_t);
+void setbit(uint16_t*,uint8_t);
+void zero(uint16_t*,uint16_t);
+bitmap *mkbmp(uint16_t);
 
 #endif
