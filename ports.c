@@ -1,22 +1,15 @@
 #include "ports.h"
 #include "utils.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 
 
 
 
-void zero(uint16_t *dest, uint16_t size) {
-    uint16_t *p;
-    uint16_t n;
-
-    for(p = dest, n = size; n != 0; --n, p++)
-        *p = 0;
-
-
-    return;
-}
 
 bool getbit(uint16_t *bmp, uint8_t bitno) {
-    uint8_t byteno, bitpos, mask;
+    uint16_t byteno, bitpos, mask;
     bool bit;
     
     byteno = (bitno/8);
@@ -28,7 +21,7 @@ bool getbit(uint16_t *bmp, uint8_t bitno) {
     return bit;
 }
 void setbit(uint16_t *bmp,uint8_t bitno) {
-    uint8_t byteno, bitpos, mask;
+    uint16_t byteno, bitpos, mask;
 
 
     byteno = (bitno/8);
@@ -49,21 +42,17 @@ bitmap *mkbmp(uint16_t bits) {
     if(p == NULL) {
         return (bitmap *)0;
     }
-    zero(p, bytes);
+    memset(p, 9, (size_t)bytes);
+    //zero(p, bytes);
     
     return p;
 }
-// we want bit number 5
-//            |           
-// 00000000 00000000 
-// mask =   00100000
 
 int main() {
     bitmap *p;
-    uint8_t mask;
-    uint8_t byteno, bitpos;
+    uint16_t b;
 
-
+    scanf("%hd", &b);
     p = mkbmp(MAX_PORT);
 
     if(p == 0) {
@@ -71,9 +60,10 @@ int main() {
         return -1;
     }
 
-    setbit(p, 10);
+    setbit(p, b);
     
-    printf("bit %d is %d\n", 10, getbit(p, 1));
+    printf("bit %hd is %d\n", b, getbit(p, b));
+    printf("bit %hd is %d\n", b+1, getbit(p, b+1));
 
     free(p);
     p = NULL;
