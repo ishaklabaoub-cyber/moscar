@@ -1,4 +1,5 @@
 #include "ports.h"
+#include "utils.h"
 
 
 
@@ -7,12 +8,13 @@ void zero(uint16_t *dest, uint16_t size) {
     uint16_t *p;
     uint16_t n;
 
-    for(n = size,p = dest; n; --n,p++)
+    for(p = dest, n = size; n != 0; --n, p++)
         *p = 0;
 
 
     return;
 }
+
 bool getbit(uint16_t *bmp, uint8_t bitno) {
     uint8_t byteno, bitpos, mask;
     bool bit;
@@ -47,7 +49,7 @@ bitmap *mkbmp(uint16_t bits) {
     if(p == NULL) {
         return (bitmap *)0;
     }
-    zero(p, (uint16_t)bytes);
+    zero(p, bytes);
     
     return p;
 }
@@ -62,7 +64,7 @@ int main() {
     uint8_t byteno, bitpos;
 
 
-    p = mkbmp(16);
+    p = mkbmp(MAX_PORT);
 
     if(p == 0) {
         fprintf(stderr, "mkbmp failed allocating mem(malloc failure).\n");
@@ -71,7 +73,7 @@ int main() {
 
     setbit(p, 10);
     
-     printf("bit %d is %d\n", 10, getbit(p, 1));
+    printf("bit %d is %d\n", 10, getbit(p, 1));
 
     free(p);
     p = NULL;

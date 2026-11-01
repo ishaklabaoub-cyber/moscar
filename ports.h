@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "utils.h"
 
 typedef u_int16_t bitmap;
 
