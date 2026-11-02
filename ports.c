@@ -8,24 +8,24 @@
 
 
 
-bool getbit(uint16_t *bmp, uint8_t bitno) {
+bool getbit(uint16_t *bmp, uint16_t bitno) {
     uint16_t byteno, bitpos, mask;
     bool bit;
     
-    byteno = (bitno/8);
-    bitpos = (bitno%8);
+    byteno = (bitno/16);
+    bitpos = (bitno%16);
 
     mask = (1 << bitpos);
     bit = ((bmp[byteno] & mask)>> bitpos) ? true: false;
 
     return bit;
 }
-void setbit(uint16_t *bmp,uint8_t bitno) {
+void setbit(uint16_t *bmp,uint16_t bitno) {
     uint16_t byteno, bitpos, mask;
 
 
-    byteno = (bitno/8);
-    bitpos = (bitno%8);
+    byteno = (bitno/16);
+    bitpos = (bitno%16);
 
     mask = (1<<bitpos);
 
@@ -42,8 +42,7 @@ bitmap *mkbmp(uint16_t bits) {
     if(p == NULL) {
         return (bitmap *)0;
     }
-    memset(p, 9, (size_t)bytes);
-    //zero(p, bytes);
+    memset(p, 0, (size_t)bytes);
     
     return p;
 }
@@ -52,7 +51,7 @@ int main() {
     bitmap *p;
     uint16_t b;
 
-    scanf("%hd", &b);
+    scanf("%hu", &b);
     p = mkbmp(MAX_PORT);
 
     if(p == 0) {
@@ -62,8 +61,8 @@ int main() {
 
     setbit(p, b);
     
-    printf("bit %hd is %d\n", b, getbit(p, b));
-    printf("bit %hd is %d\n", b+1, getbit(p, b+1));
+    printf("bit %hu is %d\n", b, getbit(p, b));
+    printf("bit %hu is %d\n", b+1, getbit(p, b+1));
 
     free(p);
     p = NULL;

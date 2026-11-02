@@ -8,10 +8,10 @@
 #include <inttypes.h>
 #include "utils.h"
 
-typedef u_int16_t bitmap;
+typedef uint16_t bitmap;
 
-bool getbit(uint16_t*,uint8_t);
-void setbit(uint16_t*,uint8_t);
+bool getbit(uint16_t*,uint16_t);
+void setbit(uint16_t*,uint16_t);
 bitmap *mkbmp(uint16_t);
 
 #endif
