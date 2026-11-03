@@ -12,8 +12,8 @@ bool getbit(uint16_t *bmp, uint16_t bitno) {
     uint16_t byteno, bitpos, mask;
     bool bit;
     
-    byteno = (bitno/16);
-    bitpos = (bitno%16);
+    byteno = (bitno/16); // byte number
+    bitpos = (bitno%16); // bit position in the byte
 
     mask = (1 << bitpos);
     bit = ((bmp[byteno] & mask)>> bitpos) ? true: false;
@@ -27,7 +27,7 @@ void setbit(uint16_t *bmp,uint16_t bitno) {
     byteno = (bitno/16);
     bitpos = (bitno%16);
 
-    mask = (1<<bitpos);
+    mask = (1<<bitpos); // new byte to OR it to the wanted byte 
 
     bmp[byteno] |= mask;
 }
