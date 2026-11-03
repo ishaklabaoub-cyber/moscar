@@ -31,6 +31,17 @@ void setbit(uint16_t *bmp,uint16_t bitno) {
 
     bmp[byteno] |= mask;
 }
+void set_ran(uint16_t *bmp, uint16_t min, uint16_t max) {
+    uint16_t byteno, bitpos, mask;
+    
+    for (uint16_t i = min; i < max + 1; ++i) {
+            byteno = (i/16);
+            bitpos = (i%16);
+
+            mask = (1<<bitpos);
+            bmp[byteno] |= mask;
+    }
+}
 
 bitmap *mkbmp(uint16_t bits) {
     uint16_t bytes;
@@ -49,9 +60,9 @@ bitmap *mkbmp(uint16_t bits) {
 
 int main() {
     bitmap *p;
-    uint16_t b;
+    uint16_t n,m;
 
-    scanf("%hu", &b);
+    scanf("%hu %hu", &n, &m);
     p = mkbmp(MAX_PORT);
 
     if(p == 0) {
@@ -59,11 +70,12 @@ int main() {
         return -1;
     }
 
-    setbit(p, b);
-    
-    printf("bit %hu is %d\n", b, getbit(p, b));
-    printf("bit %hu is %d\n", b+1, getbit(p, b+1));
+    //setbit(p, b);
+    set_ran(p, n, m);
 
+    for(uint16_t i = n-10; i < m+10; ++i) {
+        printf("bit %d --> %d\n", i, getbit(p, i));
+    }
     free(p);
     p = NULL;
     return 0;
