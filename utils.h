@@ -8,10 +8,7 @@
 #define MAX_PORT  65535 
 
 struct config {
-    long s_port[MAX_PORT];
-    long ran_port[MAX_PORT];
-    int takes_args;
-    int list_port;
+    int  takes_args;
     char *input_addr;
     long port_max;
     long port_min;

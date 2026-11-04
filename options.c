@@ -5,16 +5,23 @@
 #include <limits.h>
 #include "options.h"
 #include "utils.h"
+#include "ports.h"
 
 /* gotta use the endptr of the strtol to define if the user entered the port range as a list(20,80 --> scan just 20 and 80) or a range(20-80 --> scan 20 to 80) */
 
 int  port_ran(const char *arg, struct config *cfg)
 {
+    bitmap *p;
+    p = mkbmp(MAX_PORT);
+    if(p == 0) {
+        fprintf(stderr, "mkbmp: failed on memory allocation(malloc failure).\n");
+        return -1;
+    }
     if(arg == NULL) {
         // default port range if nothing -p or --port has 0 arguments passed
         fprintf(stderr, "port_ran: arg passed empty.\nSetting port range to [20,80].\n");
-        cfg->ran_port[0] = 20;
-        cfg->ran_port[1] = 80;
+        setport(p, 20);
+        setport(p, 80);
         return 0;
     } else {
         if(!isthere_digits(arg)) {
@@ -61,9 +68,6 @@ int  port_ran(const char *arg, struct config *cfg)
             v = strtol(list_tokens[i], &endptr, 10);
             
             if(endptr[0] == '\0')printf("\t\tendptr is  NULL\n");
-            printf("\t\tDEBUG: endptr[%s]\n", endptr);
-            printf("\t\tDEBUG: list_tokens[%s]\n", list_tokens[i]);
-            printf("\t\tDEBUG: v[%ld]\n", v);
             if(endptr[0] == '\0' && j < MAX_PORT) { // Valid single number 
                                  
                 cfg->s_port[j++] = v; 
@@ -74,7 +78,6 @@ int  port_ran(const char *arg, struct config *cfg)
                 while(token != NULL) {
                     // assigning port values while tokenizing
                     v = strtol(token, &endptr, 10);
-                    printf("\t\tDEBUG: v = %ld\n", v);
                     if(endptr[0] == '\0' && o < MAX_PORT) {
                         printf("\t\t\they\n");
                         cfg->ran_port[o++] = v;
