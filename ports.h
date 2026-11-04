@@ -14,6 +14,7 @@ bool getbit(uint16_t*,uint16_t);
 void setbit(uint16_t*,uint16_t);
 void unsetbit(uint16_t*, uint16_t);
 void set_ran(uint16_t*, uint16_t, uint16_t);
+void unset_ran(uint16_t*,uint16_t, uint16_t);
 bitmap *mkbmp(uint16_t);
 
 #endif

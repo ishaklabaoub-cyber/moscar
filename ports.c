@@ -54,6 +54,18 @@ void set_ran(uint16_t *bmp, uint16_t min, uint16_t max) {
     }
 }
 
+void unset_ran(uint16_t *bmp, uint16_t min, uint16_t max) {
+    uint16_t byteno, bitpos, mask;
+
+    for(uint16_t i = min; i < max+1; ++i) {
+        byteno = (i/16);
+        bitpos = (i%16);
+
+        mask = ~(1<<bitpos);
+        bmp[byteno] &= mask; 
+    }
+}
+
 bitmap *mkbmp(uint16_t bits) {
     uint16_t bytes;
     bitmap *p;
@@ -80,10 +92,11 @@ int main() {
     }
 
     //setbit(p, b);
-    set_ran(p, 20, 51);
+    set_ran(p, 15, 54);
 
     setbit(p, 52);
-    unsetbit(p, 51);
+    unset_ran(p, 20, 50);
+
     for(uint16_t i = 10; i < 60+1; ++i) {
         printf("bit %d --> %d\n", i, getbit(p, i));
     }
