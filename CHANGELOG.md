@@ -10,3 +10,4 @@
 # Separate the project into headers (parsing.h(parsing funcs), utils.h(config structs-prog state-and some funcs), options.h, scan.h) implementation files (parsing.c, utils.c, options.c, scan.c)
 
 # Did a bitmap and its functions and implemented it to the project.
+# ADDED a list option to the port option 
