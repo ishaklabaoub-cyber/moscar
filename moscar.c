@@ -50,9 +50,6 @@ int main(int argc, char *argv[])
         
         if( !(getport(cofg.bmp, $16 port)) )continue;       // if port not set --> continue 
         
-       // port = i;
-    
-        printf("\t\tmain:DEBUG: port[%ld]\n",port);
 		socket_fd = socket(AF_INET, SOCK_STREAM, 0);		/* creating an endpoint */
 		if(socket_fd == -1){
 			// socket() failed
