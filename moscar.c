@@ -1,20 +1,21 @@
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 #include <errno.h>
 #include <sys/socket.h>
+#include "ports.h"
 #include "scan.h"
 #include "parsing.h"
 #include "utils.h"
 
 int main(int argc, char *argv[])
 {
-    int    start_f = 0;
     int    open_count, closed_count, filtered_count, unreachable_count, error_count;    
     long   ports_scanned, port;
     int    prev_err = 0;
     enum   port_state p_state;
-    struct config cofg = {{0},{0}, 0, 0, NULL, 0L, 0L};
+    struct config cofg = {{0}, 0, 0, NULL, 0L, 0L};
 	int    socket_fd;				        /* socket file descriptor */
     struct timespec start_time, end_time;    /* for calculating proccess time */
 
@@ -33,64 +34,30 @@ int main(int argc, char *argv[])
     error_count       = 0;
     ports_scanned     = 0L;
 
-    
-    if(cofg.ran_port[0] == 0 && cofg.ran_port[1] == 0 && cofg.s_port[0] == 0 && cofg.s_port[1] == 0) {
-        // if an IP address passed and nothing after it
-        fprintf(stderr, "No port range is set.\nSetting port range to [20-80].\n");
-        cofg.ran_port[0] = 20;
-        cofg.ran_port[1] = 80;
-        cofg.list_port = 0;
+    // Checking if there any ports are set if not setting the default range [20-80]
+    uint16_t byte, bitpos, j;
+    for(j = 0;j < MAX_PORT; ++j) {
+        byte   = cofg.bmp[j/16];
+        bitpos = (j%16);
+        if( (byte>>bitpos) )break;
+    }
+    if(j == MAX_PORT){
+        fprintf(stderr, "No ports are set.\nSetting the default port range[20-80].");
+        set_ran(cofg.bmp, $16 20, $16 80);
     }
 
-    for(int i = 0,j = 0; ; ++i){
-	    if(cofg.list_port == 1) {
-            if(cofg.s_port[i] != 0 && i < MAX_PORT) {
-                port = cofg.s_port[i];
-            }else {
-                if(j > MAX_PORT){
-                    fprintf(stderr, "main: index exceeds the array's range.\n");
-                    return -1;
-                }
-                if(start_f == 0) {
-                    port = cofg.ran_port[j];
-                    start_f = 1;
-                } else if(start_f == 1) {
-                    if(port + 1 == cofg.ran_port[j + 1] + 1){
-                        j++;
-                        start_f = 0;
-                    }
-                    if(cofg.ran_port[j] == 0){
-                        break;
-                    }
-                    if(start_f == 0){
-                        continue;
-                    }
-                    port++;
-                } else {
-                    fprintf(stderr,"main: index exceeds the array's range.\n");
-                    return -1;
-                }
-            }
-        } else {
-            if(i > MAX_PORT){
-                fprintf(stderr, "main: index exceeds the array's range.\n");
-                return -1;
-            }
-            if(start_f == 0){    
-                port = cofg.ran_port[j];
-                start_f = 1;
-            } else{
-                if(port + 1 == cofg.ran_port[j + 1] + 1)break;
-                port++;
-            }
-        }
+    for(port = 1;port < MAX_PORT +1 ; ++port){
         
-        printf("\t\tmain DEBUG: port[%ld] j[%d]\n", port, j);
+        if( !(getport(cofg.bmp, $16 port)) )continue;       // if port not set --> continue 
+        
+       // port = i;
+    
+        printf("\t\tmain:DEBUG: port[%ld]\n",port);
 		socket_fd = socket(AF_INET, SOCK_STREAM, 0);		/* creating an endpoint */
 		if(socket_fd == -1){
 			// socket() failed
             if(prev_err != errno)perror("socket");
-		    error_count++;
+		    error_count++, ports_scanned++;
 			prev_err = errno;
             continue;
         }

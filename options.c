@@ -11,17 +11,10 @@
 
 int  port_ran(const char *arg, struct config *cfg)
 {
-    bitmap *p;
-    p = mkbmp(MAX_PORT);
-    if(p == 0) {
-        fprintf(stderr, "mkbmp: failed on memory allocation(malloc failure).\n");
-        return -1;
-    }
     if(arg == NULL) {
         // default port range if nothing -p or --port has 0 arguments passed
         fprintf(stderr, "port_ran: arg passed empty.\nSetting port range to [20,80].\n");
-        setport(p, 20);
-        setport(p, 80);
+        set_ran(cfg->bmp, $16 20, $16 80);
         return 0;
     } else {
         if(!isthere_digits(arg)) {
@@ -34,26 +27,27 @@ int  port_ran(const char *arg, struct config *cfg)
     long p_max, p_min, v;
     char *str = strdup(arg);
     char *tokens[2];
+    long ts[2];
     char *token;
     char *endptr = NULL;
-    int  i, j, o;
+    int  i, j;
     if(str == NULL) {
         perror("strdup");
         return -1;
     }
 
-    cfg->list_port = 0;
+    cfg->port_list = 0;
     for(i = 0;str[i] != '\0'; ++i) {
-        if(str[i] == ',') {
-            cfg->list_port = 1;
+        if(str[i] == ','){
+            cfg->port_list = 1;
             break;
         }
     }
 
-    if(cfg->list_port == 1) {
-        i = 0;
+    if(cfg->port_list == 1){
+        i = 0; 
+        j = 0;
         char *list_tokens[MAX_CAP];
-        
 
         /* tokenize with (,) delimiter first then separate single port number from ranges */
         token = strtok(str, LIS_DELIM);
@@ -63,42 +57,57 @@ int  port_ran(const char *arg, struct config *cfg)
         }
         list_tokens[i] = NULL;
         
-        j = 0, o = 0;
         for(i = 0 ;list_tokens[i] != NULL ;++i){
             v = strtol(list_tokens[i], &endptr, 10);
             
-            if(endptr[0] == '\0')printf("\t\tendptr is  NULL\n");
-            if(endptr[0] == '\0' && j < MAX_PORT) { // Valid single number 
-                                 
-                cfg->s_port[j++] = v; 
-              
+            if(endptr[0] == '\0') { // Valid single number 
+              if(v > MAX_PORT){
+                  fprintf(stderr, "You exceeded the maximum port range(%d).\n", MAX_PORT);
+                  free(str);
+                  str = NULL;
+                  return -1;
+              }
+              setport(cfg->bmp,$16 v); 
+
             } else if(endptr[0] == '-') { // '-' indicates a range
                 
                 token = strtok(list_tokens[i], TOK_DELIM);
                 while(token != NULL) {
                     // assigning port values while tokenizing
                     v = strtol(token, &endptr, 10);
-                    if(endptr[0] == '\0' && o < MAX_PORT) {
-                        printf("\t\t\they\n");
-                        cfg->ran_port[o++] = v;
+                    if(endptr[0] == '\0') {
+                        ts[j++] = v;
                     } else {
                         fprintf(stderr, "Invalid port range.\n");
                         free(str);
                         str = NULL;
                         return -1;
                     }
+                   if(j == 2)break; 
                    token = strtok(NULL, TOK_DELIM);
                 }
-
+                if(j > 0){
+                    if(MIN(ts[0],ts[1]) > MAX_PORT || MAX(ts[0],ts[1]) > MAX_PORT) {
+                        fprintf(stderr, "You exceeded the maximum port range(%d).\n", MAX_PORT);
+                        free(str);
+                        return -1;
+                    }
+                    set_ran(cfg->bmp, $16 MIN(ts[0],ts[1]), $16 MAX(ts[0],ts[1]));
+                    
+                }else {
+                    fprintf(stderr,"Invalid port range.\n");
+                    free(str);
+                    str = NULL;
+                    return -1;
+                }
             } else {
-                //fprintf(stderr, "Invalid port range or number.\n");
+                fprintf(stderr, "Invalid port range or number.\n");
                 free(str);
                 str = NULL;
                 return -1;
             }
         }
-
-    }else if(cfg->list_port == 0){
+    } else if(cfg->port_list == 0){
 
         i = 0;
         token = strtok(str, TOK_DELIM);
@@ -159,10 +168,9 @@ int  port_ran(const char *arg, struct config *cfg)
                 p_max = temp;
         }
         if(p_min == p_max){
-            cfg->ran_port[0] = p_min;
+            setport(cfg->bmp, $16 p_min);
         }else {
-            cfg->ran_port[0] = p_min;
-            cfg->ran_port[1] = p_max;
+            set_ran(cfg->bmp, $16 p_min, $16 p_max);
         }
     }
         free(str);

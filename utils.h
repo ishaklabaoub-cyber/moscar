@@ -8,9 +8,12 @@
 #define MAX_CAP   640000
 #define MIN_PORT  1
 #define MAX_PORT  65535 
+#define MIN(X,Y) (((X) < (Y)) ? X : Y)
+#define MAX(X,Y) (((X) > (Y)) ? X : Y)
 
 struct config {
     bitmap bmp[MAX_PORT];
+    int  port_list;
     int  takes_args;
     char *input_addr;
     long port_max;

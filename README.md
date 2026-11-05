@@ -98,10 +98,8 @@ The five counters always add up to `ports scanned`.
 Port parsing is deliberately forgiving:
 
 - Without `-p`, or with a bare `-p` that has no value, the range is **20-80**.
-- If `-p` is given more than once, **the last one wins**.
+- If `-p` is given more than once, **the program stops and displays the usage of the option**.
 - A reversed range is swapped: `90-80` scans 80-90.
-- Values above 65535 are clamped to 65535: `65536` scans port 65535.
-- Trailing text after a number is ignored: `80abc` scans port 80, and
   `1-2-3` scans 1-2.
 - A leading minus is ignored: `-5` scans port 5.
 - A value with no usable number (`abc`, an empty string, or another option
