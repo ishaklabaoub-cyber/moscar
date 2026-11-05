@@ -1,6 +1,8 @@
 #ifndef  UTILS_H
 #define UTILS_H
 
+#include "ports.h"
+
 #define TOK_DELIM " -"
 #define LIS_DELIM " ,"
 #define MAX_CAP   640000
@@ -8,6 +10,7 @@
 #define MAX_PORT  65535 
 
 struct config {
+    bitmap bmp[MAX_PORT];
     int  takes_args;
     char *input_addr;
     long port_max;

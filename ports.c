@@ -82,16 +82,15 @@ bitmap *mkbmp(uint16_t ports) {
 }
 
 int main() {
-    bitmap *p;
+    bitmap p[MAX_PORT];
 
-    p = mkbmp(MAX_PORT);
+    /*p = mkbmp(MAX_PORT);
 
     if(p == 0) {
         fprintf(stderr, "mkbmp failed allocating mem(malloc failure).\n");
         return -1;
-    }
+    }*/
 
-    //setport(p, b);
     set_ran(p, 15, 54);
 
     setport(p, 52);
@@ -100,7 +99,7 @@ int main() {
     for(uint16_t i = 10; i < 60+1; ++i) {
         printf("port %d --> %d\n", i, getport(p, i));
     }
-    free(p);
-    p = NULL;
+    /*free(p);
+    p = NULL;*/
     return 0;
 }
