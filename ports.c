@@ -43,7 +43,7 @@ int unsetport(uint16_t *bmp, uint16_t portno) {
 int set_ran(uint16_t *bmp, uint16_t min, uint16_t max) {
     uint16_t byteno, portpos, mask;
     
-    for (uint16_t i = min; i < max + 1; ++i) {
+    for (uint16_t i = min; i < max+1; ++i) {
             byteno = (i/16);
             portpos = (i%16);
 
