@@ -33,7 +33,7 @@ int unsetport(uint16_t *bmp, uint16_t portno) {
     uint16_t byteno, portpos, mask; 
     
     byteno = (portno/16);
-    portpos = (portno/16);
+    portpos = (portno%16);
 
     mask = ~(1<<portpos);
 
