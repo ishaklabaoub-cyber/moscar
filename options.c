@@ -68,8 +68,8 @@ int  port_ran(const char *arg, struct config *cfg)
             v = strtol(list_tokens[i], &endptr, 10);
             
             if(endptr[0] == '\0') { // Valid single number 
-              if(v > MAX_PORT){
-                  fprintf(stderr, "You exceeded the maximum port range(%d).\n", MAX_PORT);
+              if(v > MAX_PORT || v < 0){
+                  fprintf(stderr, "You entered an Invalid port range or number(%ld).\n", v);
                   free(str);
                   str = NULL;
                   return -1;
@@ -82,7 +82,7 @@ int  port_ran(const char *arg, struct config *cfg)
                 while(token != NULL) {
                     // assigning port values while tokenizing
                     v = strtol(token, &endptr, 10);
-                    if(endptr[0] == '\0') {
+                    if(endptr[0] == '\0' && v > 0) {
                         ts[j++] = v;
                     } else {
                         fprintf(stderr, "Invalid port range.\n");
@@ -93,7 +93,7 @@ int  port_ran(const char *arg, struct config *cfg)
                    if(j == 2)break; 
                    token = strtok(NULL, TOK_DELIM);
                 }
-                if(j > 0){
+                if(j == 2){
                     if(MIN(ts[0],ts[1]) > MAX_PORT || MAX(ts[0],ts[1]) > MAX_PORT) {
                         fprintf(stderr, "You exceeded the maximum port range(%d).\n", MAX_PORT);
                         free(str);
@@ -103,6 +103,7 @@ int  port_ran(const char *arg, struct config *cfg)
                     
                 }else {
                     fprintf(stderr,"Invalid port range.\n");
+                    fprintf(stderr, "You did not pass a valid port numbers '%s' (expected N or N-M or [N,N-M] as a list, e.g. 80 or 20-80 || 20,50-80).\n",arg);
                     free(str);
                     str = NULL;
                     return -1;
