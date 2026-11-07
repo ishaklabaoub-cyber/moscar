@@ -29,13 +29,23 @@ OPEN_LABEL="open ports"
 CLOSED_LABEL="closed ports"
 FILTERED_LABEL="filtered ports"
 UNREACHABLE_LABEL="unreachable ports"
-ERRORS_LABEL="errors"       # v0.2: probes that ended in an unexpected error (match your summary)
+ERRORS_LABEL="errors"            # v0.2: probes that could not run or ended in an unexpected error
 
 # Decisions about YOUR program's behavior. Change them here when you change the program.
 HELP_EXIT=1             # exit code after --help / -h (many tools use 0)
 ERR_EXIT=1              # exit code for rejected input (bad IP, bad option, bad port value)
 DEFAULT_RANGE_COUNT=61  # ports scanned when -p is given with no value (default 20-80)
 NO_P_COUNT=61           # ports scanned when NO -p is given at all (default range 20-80)
+ORIG_RUN_TIMEOUT=${RUN_TIMEOUT:-30}
+RUN_TIMEOUT=${RUN_TIMEOUT:-30}   # seconds before one run is killed and reported as a hang
+FULL_RANGE=${FULL_RANGE:-1}      # 1: also scan every port 1-65535 once (slow; set 0 to skip)
+
+# ---- DESIGN DECISIONS: set each one to what YOUR program does -----------------
+# (or override from the shell:  REPEAT_P=replace bash run_tests.sh)
+REPEAT_P=${REPEAT_P:-union}                  # union: every -p adds ports | replace: the last -p wins | reject: a second -p is an error
+EMPTY_ITEMS=${EMPTY_ITEMS:-skip}             # skip: 22,,80  22,  ,22 ignore empty items | reject: errors
+EXTRA_RANGE_PART=${EXTRA_RANGE_PART:-ignore} # ignore: 80-90-100 uses 80-90 | reject: it is an error
+REVERSED_RANGE=${REVERSED_RANGE:-swap}       # swap: 90-80 means 80-90 (also inside lists) | reject: error
 
 # Test ports: A and C get listeners; B and the rest of the range stay closed.
 PORT_A=18080
@@ -100,7 +110,7 @@ run_scan() {
     errf=$(mktemp)
     t0=$(date +%s.%N)
     # shellcheck disable=SC2086   # RUNNER is meant to word-split ("unshare -rn")
-    OUT=$(timeout 30 $RUNNER "$BIN" "$@" 2>"$errf" </dev/null)
+    OUT=$(timeout "$RUN_TIMEOUT" $RUNNER "$BIN" "$@" 2>"$errf" </dev/null)
     CODE=$?
     t1=$(date +%s.%N)
     ERR=$(<"$errf")
@@ -270,12 +280,122 @@ expect_reject "unknown option before a valid one" "$HOST" -x -p 80
 echo "== several options =="
 expect_help "-h after another option" "$HOST" -p 80 -h
 expect_help "--help after another option" "$HOST" -p 80 --help
-expect_scan "-p twice: the last one wins" 2 "$HOST" -p 80 -p 90-91
-expect_scan "-p then --port: the last one wins" 2 "$HOST" -p 80 --port 81-82
+# Two VALID port options in one command (-p 80 -p 90-91). This is a different case
+# from "-p -p", where the second option is used as the VALUE of the first one:
+# that is rejected (see the "bad input" group) whatever you choose here.
+case "$REPEAT_P" in
+union)
+    expect_scan "-p twice: ports from both are scanned" 3 "$HOST" -p 80 -p 90-91
+    expect_scan "-p then --port: ports from both are scanned" 3 "$HOST" -p 80 --port 81-82
+    expect_scan "-p twice with the same port counts it once" 1 "$HOST" -p 80 -p 80
+    expect_scan "a bare -p after a port uses the default range" "$DEFAULT_RANGE_COUNT" "$HOST" -p 80 -p
+    ;;
+replace)
+    expect_scan "-p twice: the last one wins" 2 "$HOST" -p 80 -p 90-91
+    expect_scan "-p then --port: the last one wins" 2 "$HOST" -p 80 --port 81-82
+    expect_scan "a bare -p after a port uses the default range" "$DEFAULT_RANGE_COUNT" "$HOST" -p 80 -p
+    ;;
+reject)
+    expect_reject "-p given twice is an error" "$HOST" -p 80 -p 90-91
+    expect_reject "-p then --port is an error" "$HOST" -p 80 --port 81-82
+    expect_reject "-p twice with the same port is an error" "$HOST" -p 80 -p 80
+    ;;
+*)
+    echo "  skip  unknown REPEAT_P='$REPEAT_P' (use union, replace or reject)"
+    ;;
+esac
 if [ -n "$NO_P_COUNT" ]; then
     expect_scan "no -p: default range is used" "$NO_P_COUNT" "$HOST"
 else
     echo "  skip  no -p default (set NO_P_COUNT once you decide the default range)"
+fi
+
+echo "== port lists (strict rules - edit a line if you decide differently) =="
+expect_scan "two single ports"                          2  "$HOST" -p 22,80
+expect_scan "singles and a range mixed"                 5  "$HOST" -p 22,80-82,443
+expect_scan "two ranges"                                6  "$HOST" -p 80-82,85-87
+expect_scan "range ending at 65535"                     6  "$HOST" -p 65530-65535
+expect_scan "list with a range ending at 65535"         7  "$HOST" -p 22,65530-65535
+expect_scan "order does not matter"                     5  "$HOST" -p 443,80-82,22
+expect_scan "duplicate port counts once"                1  "$HOST" -p 22,22
+expect_scan "overlapping ranges merge"                 11  "$HOST" -p 20-30,25
+expect_scan "a port inside a range counts once"         3  "$HOST" -p "$PORT_A-$PORT_C,$PORT_B"
+expect_scan "lowest and highest port in one list"       2  "$HOST" -p 1,65535
+run_scan "$HOST" -p "$PORT_A,$PORT_C"
+expect "list finds both listeners" 2 2 0
+if [ "$EMPTY_ITEMS" = "reject" ]; then
+    expect_reject "empty item in the middle (22,,80)"   "$HOST" -p 22,,80
+    expect_reject "trailing comma (22,)"                "$HOST" -p 22,
+    expect_reject "leading comma (,22)"                 "$HOST" -p ,22
+else
+    expect_scan "empty item is skipped (22,,80)"      2 "$HOST" -p 22,,80
+    expect_scan "trailing comma is skipped (22,)"     1 "$HOST" -p 22,
+    expect_scan "leading comma is skipped (,22)"      1 "$HOST" -p ,22
+fi
+if [ "$REVERSED_RANGE" = "swap" ]; then
+    expect_scan "reversed range in a list is swapped (90-80,22)" 12 "$HOST" -p 90-80,22
+else
+    expect_reject "reversed range in a list (90-80,22)" "$HOST" -p 90-80,22
+fi
+expect_reject "port 0 in a list (0,22)"                 "$HOST" -p 0,22
+expect_reject "port above 65535 in a list (70000,80)"   "$HOST" -p 70000,80
+expect_reject "negative port in a list (-5,22)"         "$HOST" -p -5,22
+expect_reject "open-ended range in a list (80-,22)"     "$HOST" -p 80-,22
+if [ "$EXTRA_RANGE_PART" = "reject" ]; then
+    expect_reject "range with 3 numbers (80-90-100,22)" "$HOST" -p 80-90-100,22
+else
+    expect_scan "third number of a range is ignored (80-90-100,22)" 12 "$HOST" -p 80-90-100,22
+fi
+expect_reject "junk after a number in a list (22,80abc)" "$HOST" -p 22,80abc
+expect_reject "--port followed by an option (--port -p)" "$HOST" --port -p
+
+echo "== robustness =="
+# 1. a list must not need megabytes of stack (4 MB is below the usual 8 MB default)
+if command -v prlimit >/dev/null; then
+    RUNNER="prlimit --stack=4194304"
+    run_scan "$HOST" -p 22,80
+    RUNNER=""
+    expect "a list works with a 4 MB stack limit" 2 - -
+else
+    echo "  skip  (prlimit not available)"
+fi
+# 2. big inputs
+LONG_LIST=$(seq -s, 1 3000)
+expect_scan "a list of 3000 different ports" 3000 "$HOST" -p "$LONG_LIST"
+DUP_LIST=$(yes 22 | head -n 20000 | paste -sd, -)
+expect_scan "20000 copies of one port count once" 1 "$HOST" -p "$DUP_LIST"
+HUGE=$(printf '9%.0s' $(seq 1 5000))
+expect_reject "a 5000-digit number" "$HOST" -p "$HUGE"
+expect_reject "a 5000-digit number inside a list" "$HOST" -p "22,$HUGE"
+LONG_OPT=$(printf 'a%.0s' $(seq 1 5000))
+expect_reject "a 5000-character option name" "$HOST" "--$LONG_OPT"
+# 3. both ends of the port space inside one list
+expect_scan "ends of the port space in one list" 6 "$HOST" -p 1-3,65533-65535
+# 4. results come out in ascending order, whatever order the user typed
+run_scan "$HOST" -p "$PORT_C,$PORT_A"
+raw_order=$(grep -oE 'port [0-9]+ is open' <<<"$OUT" | awk '{print $2}' | tr '\n' ' ')
+if [ "$raw_order" = "$PORT_A $PORT_C " ]; then
+    pass "open ports are listed in ascending order"
+else
+    fail "open ports are listed in ascending order" "got [${raw_order% }]"
+fi
+# 5. a list mixed with a range, checked against ss
+run_scan "$HOST" -p "$SCAN_LO-$SCAN_HI,$PORT_C"
+expect "range plus a port inside it adds up" 10 - -
+want=$(ss_open_ports "$SCAN_LO" "$SCAN_HI")
+got=$(scanner_open_ports)
+if [ "$want" = "$got" ]; then
+    pass "list open ports match ss  [${got% }]"
+else
+    fail "list open ports match ss" "ss says [${want% }] but scanner says [${got% }]"
+fi
+# 6. the whole port space (slow)
+if [ "$FULL_RANGE" = "1" ]; then
+    RUN_TIMEOUT=180
+    expect_scan "every port from 1 to 65535" 65535 "$HOST" -p 1-65535
+    RUN_TIMEOUT=${ORIG_RUN_TIMEOUT:-30}
+else
+    echo "  skip  full range 1-65535 (FULL_RANGE=0)"
 fi
 
 echo "== ground truth (ss) =="
