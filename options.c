@@ -57,7 +57,7 @@ int  port_ran(const char *arg, struct config *cfg)
 
         /* tokenize with (,) delimiter first then separate single port number from ranges */
         token = strtok(str, LIS_DELIM);
-        while(token != NULL) {
+        while(token != NULL && i < MAX_CAP-1) {
             list_tokens[i++] = token;   
             token = strtok(NULL, LIS_DELIM);    
         }
