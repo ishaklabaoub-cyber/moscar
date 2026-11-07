@@ -78,7 +78,6 @@ int parse_args(int argc, char *argv[], struct config *cofg)
                  */
 
                 /* if the option takes arguments pass the next CL argument */
-                printf("\t\twow\n");
                 func_ret = (cofg->takes_args) ? exec_opt(option, argv[++i], cofg) : exec_opt(option, argv[i], cofg);   
                 
                 if(func_ret == 1) {

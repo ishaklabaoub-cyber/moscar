@@ -53,7 +53,6 @@ int  port_ran(const char *arg, struct config *cfg)
 
     if(cfg->port_list == 1){
         i = 0; 
-        j = 0;
         char *list_tokens[MAX_CAP];
 
         /* tokenize with (,) delimiter first then separate single port number from ranges */
@@ -65,6 +64,7 @@ int  port_ran(const char *arg, struct config *cfg)
         list_tokens[i] = NULL;
         
         for(i = 0 ;list_tokens[i] != NULL ;++i){
+            j = 0;
             v = strtol(list_tokens[i], &endptr, 10);
             
             if(endptr[0] == '\0') { // Valid single number 
