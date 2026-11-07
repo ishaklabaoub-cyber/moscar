@@ -68,7 +68,7 @@ int  port_ran(const char *arg, struct config *cfg)
             v = strtol(list_tokens[i], &endptr, 10);
             
             if(endptr[0] == '\0') { // Valid single number 
-              if(v > MAX_PORT || v < 0){
+              if(v > MAX_PORT || v <= 0){
                   fprintf(stderr, "You entered an Invalid port range or number(%ld).\n", v);
                   free(str);
                   str = NULL;
