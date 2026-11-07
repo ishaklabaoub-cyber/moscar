@@ -1,7 +1,7 @@
 #include "ports.h"
 #include <stddef.h>
 #include <stdint.h>
-
+#include "utils.h"
 
 
 bool getport(uint16_t *bmp, uint16_t portno) {
@@ -41,9 +41,15 @@ int unsetport(uint16_t *bmp, uint16_t portno) {
     return 0;
 }
 int set_ran(uint16_t *bmp, uint16_t min, uint16_t max) {
-    uint16_t byteno, portpos, mask;
-    
-    for (uint16_t i = min; i < max+1; ++i) {
+    uint16_t byteno, portpos, mask,j = 1;
+
+    if(max == MAX_PORT) {       /* if the user wants to scan 65330-65335 the loop will break because */
+        setport(bmp, max);      /* i is a 16 bit integer , it cannot hold more than 65335 , i will get*/
+        j = 0;                  /* to 0 and the loop will be infinit , if max == 65335 we set that port*/
+    }                           /* and stop i before it resets to 0 */
+
+        
+    for (uint16_t i = min; i < max+j; ++i) {
             byteno = (i/16);
             portpos = (i%16);
 
@@ -54,9 +60,13 @@ int set_ran(uint16_t *bmp, uint16_t min, uint16_t max) {
 }
 
 int unset_ran(uint16_t *bmp, uint16_t min, uint16_t max) {
-    uint16_t byteno, portpos, mask;
+    uint16_t byteno, portpos, mask, j = 1;
+    if(max == MAX_PORT) {
+        unsetport(bmp, max);
+        j = 0;
+    }
     
-    for(uint16_t i = min; i < max+1; ++i) {
+    for(uint16_t i = min; i < max+j; ++i) {
         byteno = (i/16);
         portpos = (i%16);
 

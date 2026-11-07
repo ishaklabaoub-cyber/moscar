@@ -6,7 +6,14 @@
 #include "options.h"
 #include "utils.h"
 #include "ports.h"
+// defining options and their properties
+option_entry opt_prop[] = {                    /* returns values meanings: 1 -> program should exit , -1 -> error detected program must exit, 0 -> success */
 
+    {"-help", 'h', 0, &help_opt, "- Displaying options.\n. Usage: ./moscar [--help | -h]\n"},
+    {"-port", 'p', 1, &port_ran, "- Setting the port range needed to scan.\n. Usage: ./moscar <ipv4> [--port | -p] [N | N,M | N-M]\n"},
+    {NULL, 0, 0, NULL, NULL}
+
+};
 /* gotta use the endptr of the strtol to define if the user entered the port range as a list(20,80 --> scan just 20 and 80) or a range(20-80 --> scan 20 to 80) */
 
 int  port_ran(const char *arg, struct config *cfg)
@@ -250,11 +257,3 @@ int exec_opt(char *option, char *arg, struct config *cofg)
        fprintf(stderr,"for help: --help or -h.\n");
        return -1;
 }
-// defining options and their properties
-option_entry opt_prop[] = {                    /* returns values meanings: 1 -> program should exit , -1 -> error detected program must exit, 0 -> success */
-
-    {"-help", 'h', 0, &help_opt, "- Displaying options.\n. Usage: ./moscar [--help | -h]\n"},
-    {"-port", 'p', 1, &port_ran, "- Setting the port range needed to scan.\n. Usage: ./moscar <ipv4> [--port | -p] [N | N,M | N-M]\n"},
-    {NULL, 0, 0, NULL, NULL}
-
-};
