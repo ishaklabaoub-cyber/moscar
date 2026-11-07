@@ -19,5 +19,6 @@ int         exec_opt(char*, char*,struct config *);        // EXECUTING OPTIONS
 char        *check_opt(char *);                            // RETURN THE OPTION CHARACTER
 int         help_opt(const char *arg, struct config *cfg); // DISPLAYING OPTIONS
 int         port_ran(const char *arg, struct config *cfg); // SETTING PORT RANGE
+int         timeout(const  char *arg, struct config *cfg); // SETTING A TIMEOUT FOR A CONNECTION
                                                            
 #endif

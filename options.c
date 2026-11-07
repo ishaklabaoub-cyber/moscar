@@ -6,15 +6,21 @@
 #include "options.h"
 #include "utils.h"
 #include "ports.h"
+
 // defining options and their properties
 option_entry opt_prop[] = {                    /* returns values meanings: 1 -> program should exit , -1 -> error detected program must exit, 0 -> success */
 
     {"-help", 'h', 0, &help_opt, "- Displaying options.\n. Usage: ./moscar [--help | -h]\n"},
     {"-port", 'p', 1, &port_ran, "- Setting the port range needed to scan.\n. Usage: ./moscar <ipv4> [--port | -p] [N | N,M | N-M]\n"},
+    {"-timeout", 't', 1, &timeout, "- Setting a timeout for a connection.\n. Usage: ./moscar <ipv4> --timeout <ms>\n"},   
     {NULL, 0, 0, NULL, NULL}
 
 };
-/* gotta use the endptr of the strtol to define if the user entered the port range as a list(20,80 --> scan just 20 and 80) or a range(20-80 --> scan 20 to 80) */
+
+int timeout(const char *arg, struct config *cfg) {
+    assert(false && "TODO: timeout function is not imeplemented.\n");
+    return 0;
+}
 
 int  port_ran(const char *arg, struct config *cfg)
 {
