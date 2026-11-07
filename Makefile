@@ -18,6 +18,14 @@ moscar_asan: $(AOBJS)
 %.asan.o: %.c
 	$(CC) $(WARN) -g -fsanitize=address,undefined -MMD -MP -c $< -o $@
 
+# unit tests for the port set (needs test_ports.c and ports.c)
+unit: test_ports.c ports.c ports.h
+	$(CC) $(WARN) -g -fsanitize=address,undefined test_ports.c ports.c -o test_ports
+	timeout 60 ./test_ports
+
+# everything: static checks, unit tests, end-to-end tests
+check: lint unit test
+
 test: moscar_asan
 	BIN=./moscar_asan bash run_tests.sh
 
@@ -27,8 +35,8 @@ lint:
 	done
 
 clean:
-	rm -f *.o *.d moscar moscar_asan
+	rm -f *.o *.d moscar moscar_asan test_ports
 
 -include $(SRCS:.c=.d) $(SRCS:.c=.asan.d)
 
-.PHONY: test lint clean
+.PHONY: test unit check lint clean
