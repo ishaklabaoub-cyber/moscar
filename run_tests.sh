@@ -46,8 +46,8 @@ REPEAT_P=${REPEAT_P:-union}                  # union: every -p adds ports | repl
 EMPTY_ITEMS=${EMPTY_ITEMS:-skip}             # skip: 22,,80  22,  ,22 ignore empty items | reject: errors
 EXTRA_RANGE_PART=${EXTRA_RANGE_PART:-ignore} # ignore: 80-90-100 uses 80-90 | reject: it is an error
 REVERSED_RANGE=${REVERSED_RANGE:-swap}       # swap: 90-80 means 80-90 (also inside lists) | reject: error
-TIMEOUT_MIN=${TIMEOUT_MIN:-1}                # smallest --timeout accepted, in milliseconds
-TIMEOUT_MAX=${TIMEOUT_MAX:-999}            # largest --timeout accepted, in milliseconds
+TIMEOUT_MIN=${TIMEOUT_MIN:-1}                # smallest --timeout accepted, in milliseconds (negative is rejected)
+TIMEOUT_MAX=${TIMEOUT_MAX:-999}              # largest --timeout accepted, in milliseconds (1000 and above is rejected)
 REPEAT_TIMEOUT=${REPEAT_TIMEOUT:-last}       # last: the last --timeout wins | reject: a second --timeout is an error
 
 # Test ports: A and C get listeners; B and the rest of the range stay closed.
@@ -359,6 +359,8 @@ expect_scan "--timeout alone keeps the default range"     "$DEFAULT_RANGE_COUNT"
 expect_scan "smallest accepted timeout ($TIMEOUT_MIN ms)" 1 "$HOST" -p 80 --timeout "$TIMEOUT_MIN"
 expect_scan "largest accepted timeout ($TIMEOUT_MAX ms)"  1 "$HOST" -p 80 --timeout "$TIMEOUT_MAX"
 expect_reject "below the smallest timeout"     "$HOST" -p 80 --timeout "$((TIMEOUT_MIN - 1))"
+expect_reject "a negative timeout (-1)"        "$HOST" -p 80 --timeout -1
+expect_reject "a negative timeout (-1000)"     "$HOST" -p 80 --timeout -1000
 expect_reject "above the largest timeout"      "$HOST" -p 80 --timeout "$((TIMEOUT_MAX + 1))"
 expect_reject "--timeout with no value"        "$HOST" -p 80 --timeout
 expect_reject "--timeout abc"                  "$HOST" -p 80 --timeout abc
@@ -393,7 +395,10 @@ timing_check() {   # timing_check <name> <min-seconds> <max-seconds> <args...>
     fi
 }
 timing_check "default timeout is about 300 ms"  0.25 0.9
-timing_check "--timeout 1000 waits about 1 s"   0.9  1.7  --timeout 1000
+T_LONG=$(( TIMEOUT_MAX < 800 ? TIMEOUT_MAX : 800 ))
+T_LO=$(awk -v t="$T_LONG" 'BEGIN { printf "%.2f", t / 1000 - 0.05 }')
+T_HI=$(awk -v t="$T_LONG" 'BEGIN { printf "%.2f", t / 1000 + 0.7 }')
+timing_check "--timeout $T_LONG waits about $T_LONG ms" "$T_LO" "$T_HI" --timeout "$T_LONG"
 timing_check "--timeout 50 gives up quickly"    0.0  0.25 --timeout 50
 
 echo "== robustness =="
