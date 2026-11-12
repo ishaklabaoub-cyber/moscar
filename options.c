@@ -47,7 +47,11 @@ int timeout(const char *arg, struct config *cfg) {
         return 0;
     } else {
         if(v >= MAX_TIMEOUT) {
-            fprintf(stderr, "This timeout (%d) takes a lot of time to run a scan.\n-Timeout should be between 0 and 1000.\n",v);
+            //fprintf(stderr, "This timeout (%d) takes a lot of time to run a scan.\n-Timeout should be between 0 and 1000.\n",v);
+            cfg->timeout = v;
+            free(str);
+            str = NULL;
+            return 0;
         } else if(v < 0) {
             fprintf(stderr, "You passed a negative timeout (%d).\n",v);
         }else {
@@ -65,7 +69,7 @@ int  port_ran(const char *arg, struct config *cfg)
         // default port range if nothing -p or --port has 0 arguments passed
         fprintf(stderr, "port_ran: arg passed empty.\nSetting port range to [20,80].\n");
         set_ran(cfg->bmp, $16 20, $16 80);
-        return 1;
+        return 0;
     } else {
         if(!isthere_digits(arg)) {
             fprintf(stderr, "You did not pass a valid port numbers '%s' (expected N or N-M or [N,N-M] as a list, e.g. 80 or 20-80 || 20,50-80).\n",arg);
