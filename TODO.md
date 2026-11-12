@@ -37,6 +37,7 @@ See what the summary says. Write down what it should say.
 # Time with CLOCK_MONOTONIC, and set sensible bounds on the timeout.
 # Test it with a late listener: start the listener about 500 ms after the scan begins, and check that the port is found with retries on and missed with -retries 0 (or whatever option you choose).
 
+// Task 5 nearly done haha
 ## Task 5: finish up
 # --version, and a decision on the help exit code (many tools use 0). If you change it, update HELP_EXIT in the tests and the README.
 # Update the README (options table, list syntax, timeouts, limitations) and the changelog.
