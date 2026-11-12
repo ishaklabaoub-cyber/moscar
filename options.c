@@ -47,11 +47,7 @@ int timeout(const char *arg, struct config *cfg) {
         return 0;
     } else {
         if(v >= MAX_TIMEOUT) {
-            //fprintf(stderr, "This timeout (%d) takes a lot of time to run a scan.\n-Timeout should be between 0 and 1000.\n",v);
-            cfg->timeout = v;
-            free(str);
-            str = NULL;
-            return 0;
+            fprintf(stderr, "This timeout (%d) takes a lot of time to run a scan.\n-Timeout should be between 0 and 1000.\n",v);
         } else if(v < 0) {
             fprintf(stderr, "You passed a negative timeout (%d).\n",v);
         }else {
