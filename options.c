@@ -21,7 +21,7 @@ int timeout(const char *arg, struct config *cfg) {
     if(arg == NULL) {
         // default timeout is set if nothing gets passed
         cfg->timeout = 300;
-        return 0;
+        return 1;
     } else {
         if(!isthere_digits(arg)) {
             fprintf(stderr, "You did not pass a valid timeout number '%s' expected(<ms> e.g.: 300).\n",arg);
@@ -66,7 +66,7 @@ int  port_ran(const char *arg, struct config *cfg)
         // default port range if nothing -p or --port has 0 arguments passed
         fprintf(stderr, "port_ran: arg passed empty.\nSetting port range to [20,80].\n");
         set_ran(cfg->bmp, $16 20, $16 80);
-        return 0;
+        return 1;
     } else {
         if(!isthere_digits(arg)) {
             fprintf(stderr, "You did not pass a valid port numbers '%s' (expected N or N-M or [N,N-M] as a list, e.g. 80 or 20-80 || 20,50-80).\n",arg);
