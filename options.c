@@ -40,7 +40,6 @@ int timeout(const char *arg, struct config *cfg) {
     errno = 0;
     v = strtol(str, &endptr, 10);
     
-    printf("\t\ttimeout: DEBUG: v[%d]\n",v);
     if(endptr[0] == '\0' && v < MAX_TIMEOUT && v > 0){ // valid timeout number
         cfg->timeout = v;
         free(str);

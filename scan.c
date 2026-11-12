@@ -9,6 +9,10 @@
 
 enum port_state scan_port(int socket_fd,const char *input_addr,long port,struct config *cfg)
 {
+    if(cfg->timeout <= 0) {
+        // timeout function did not get called , setting timeout to default(300)
+        cfg->timeout = 300;
+    }
     struct sockaddr_in addr;		        /* ip address */
 	struct pollfd pfd;			            /* for a non-blocking socket */
 	int    expected_error = EINPROGRESS;	/* to identify that the connection is in progress */
