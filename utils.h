@@ -20,8 +20,6 @@ struct config {
     int  port_list;
     int  takes_args;
     char *input_addr;
-    long port_max;
-    long port_min;
 };
 
 enum prog_state {
