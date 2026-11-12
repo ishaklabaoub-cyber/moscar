@@ -13,10 +13,18 @@ option_entry opt_prop[] = {                    /* returns values meanings: 1 -> 
     {"-help", 'h', 0, &help_opt, "- Displaying options.\n. Usage: ./moscar [--help | -h]\n"},
     {"-port", 'p', 1, &port_ran, "- Setting the port range needed to scan.\n. Usage: ./moscar <ipv4> [--port | -p] [N | N,M | N-M]\n"},
     {"-timeout", 't', 1, &timeout, "- Setting a timeout for a connection.\n. Usage: ./moscar <ipv4> --timeout <ms>\n"},   
+    {"-version", 'v', 0, &version, "- Displaying the scanner's version.\nUsage: ./moscar -v || --version"},
     {NULL, 0, 0, NULL, NULL}
 
 };
 
+int version(const char *arg, struct config *cfg) {
+    (void) arg;
+    (void) cfg;
+
+    printf("moscar v0.2\n");
+    return 1;
+}
 int timeout(const char *arg, struct config *cfg) {
     if(arg == NULL) {
         // default timeout is set if nothing gets passed

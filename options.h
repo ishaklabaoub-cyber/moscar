@@ -20,5 +20,6 @@ char        *check_opt(char *);                            // RETURN THE OPTION 
 int         help_opt(const char *arg, struct config *cfg); // DISPLAYING OPTIONS
 int         port_ran(const char *arg, struct config *cfg); // SETTING PORT RANGE
 int         timeout(const  char *arg, struct config *cfg); // SETTING A TIMEOUT FOR A CONNECTION
+int         version(const  char *arg, struct config *cfg); // DISPLAYS THE SCANNER'S VERSION
                                                            
 #endif
