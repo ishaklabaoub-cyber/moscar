@@ -11,3 +11,6 @@
 
 # Did a bitmap and its functions and implemented it to the project.
 # ADDED a list option to the port option 
+
+
+# added a timeout function in the option.c and added int timeout in struct config to use it in the scan_port function in scan.c
