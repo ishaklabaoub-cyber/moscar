@@ -30,9 +30,14 @@ int timeout(const char *arg, struct config *cfg) {
     }
 
     char* str = strdup(arg);
+    if(str == NULL) {
+        perror("strdup");
+        return -1;
+    }
     char *endptr = NULL;
     int v;
-    
+
+    errno = 0;
     v = strtol(str, &endptr, 10);
     
     printf("\t\ttimeout: DEBUG: v[%d]\n",v);

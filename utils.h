@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <assert.h>
+#include <errno.h>
 #include "ports.h"
 
 #define TOK_DELIM " -"

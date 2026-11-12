@@ -46,6 +46,9 @@ REPEAT_P=${REPEAT_P:-union}                  # union: every -p adds ports | repl
 EMPTY_ITEMS=${EMPTY_ITEMS:-skip}             # skip: 22,,80  22,  ,22 ignore empty items | reject: errors
 EXTRA_RANGE_PART=${EXTRA_RANGE_PART:-ignore} # ignore: 80-90-100 uses 80-90 | reject: it is an error
 REVERSED_RANGE=${REVERSED_RANGE:-swap}       # swap: 90-80 means 80-90 (also inside lists) | reject: error
+TIMEOUT_MIN=${TIMEOUT_MIN:-1}                # smallest --timeout accepted, in milliseconds
+TIMEOUT_MAX=${TIMEOUT_MAX:-60000}            # largest --timeout accepted, in milliseconds
+REPEAT_TIMEOUT=${REPEAT_TIMEOUT:-last}       # last: the last --timeout wins | reject: a second --timeout is an error
 
 # Test ports: A and C get listeners; B and the rest of the range stay closed.
 PORT_A=18080
@@ -348,6 +351,50 @@ else
 fi
 expect_reject "junk after a number in a list (22,80abc)" "$HOST" -p 22,80abc
 expect_reject "--port followed by an option (--port -p)" "$HOST" --port -p
+
+echo "== timeout option (--timeout <ms>) =="
+expect_scan "--timeout with a valid value"                1 "$HOST" -p 80 --timeout 500
+expect_scan "--timeout before the other options"          1 "$HOST" --timeout 500 -p 80
+expect_scan "--timeout alone keeps the default range"     "$DEFAULT_RANGE_COUNT" "$HOST" --timeout 500
+expect_scan "smallest accepted timeout ($TIMEOUT_MIN ms)" 1 "$HOST" -p 80 --timeout "$TIMEOUT_MIN"
+expect_scan "largest accepted timeout ($TIMEOUT_MAX ms)"  1 "$HOST" -p 80 --timeout "$TIMEOUT_MAX"
+expect_reject "below the smallest timeout"     "$HOST" -p 80 --timeout "$((TIMEOUT_MIN - 1))"
+expect_reject "above the largest timeout"      "$HOST" -p 80 --timeout "$((TIMEOUT_MAX + 1))"
+expect_reject "--timeout with no value"        "$HOST" -p 80 --timeout
+expect_reject "--timeout abc"                  "$HOST" -p 80 --timeout abc
+expect_reject "--timeout 12abc (trailing junk)" "$HOST" -p 80 --timeout 12abc
+expect_reject "--timeout -5 (negative)"        "$HOST" -p 80 --timeout -5
+expect_reject "--timeout 1.5 (decimal)"        "$HOST" -p 80 --timeout 1.5
+expect_reject "--timeout with an empty value"  "$HOST" -p 80 --timeout ""
+expect_reject "--timeout too big for a long (ERANGE)" "$HOST" -p 80 --timeout 99999999999999999999
+expect_reject "--timeout followed by an option (--timeout -p)" "$HOST" --timeout -p 80
+expect_reject "-p followed by --timeout"       "$HOST" -p --timeout 500
+if [ "$REPEAT_TIMEOUT" = "reject" ]; then
+    expect_reject "--timeout given twice is an error"   "$HOST" -p 80 --timeout 100 --timeout 200
+else
+    expect_scan "--timeout given twice: the last one wins" 1 "$HOST" -p 80 --timeout 100 --timeout 200
+fi
+run_scan --help
+if grep -qi "timeout" <<<"$OUT"; then pass "help mentions --timeout"; else fail "help mentions --timeout" "the word 'timeout' is not in the help text"; fi
+
+# The option must really change how long an unanswered probe waits.
+# 192.0.2.1 never answers; on a network without a route the probe fails at once
+# and these three checks are skipped.
+timing_check() {   # timing_check <name> <min-seconds> <max-seconds> <args...>
+    local name=$1 lo=$2 hi=$3
+    shift 3
+    run_scan 192.0.2.1 -p 80 "$@"
+    if [ "${F:-0}" != "1" ]; then
+        echo "  skip  $name (192.0.2.1 did not time out here: filtered=${F:-0})"
+    elif awk -v t="$ELAPSED" -v lo="$lo" -v hi="$hi" 'BEGIN { exit !(t >= lo && t <= hi) }'; then
+        pass "$name (${ELAPSED}s)"
+    else
+        fail "$name" "took ${ELAPSED}s, wanted between $lo and $hi s"
+    fi
+}
+timing_check "default timeout is about 300 ms"  0.25 0.9
+timing_check "--timeout 1000 waits about 1 s"   0.9  1.7  --timeout 1000
+timing_check "--timeout 50 gives up quickly"    0.0  0.25 --timeout 50
 
 echo "== robustness =="
 # 1. a list must not need megabytes of stack (4 MB is below the usual 8 MB default)
