@@ -14,3 +14,5 @@
 
 
 # added a timeout function in the option.c and added int timeout in struct config to use it in the scan_port function in scan.c
+
+# added a version displaying option that displays moscar's version 
