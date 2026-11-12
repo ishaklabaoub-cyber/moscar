@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     long   ports_scanned, port;
     int    prev_err = 0;
     enum   port_state p_state;
-    struct config cofg = {{0}, 0, 0, 0, NULL, 0L, 0L};
+    struct config cofg = {{0}, 0, 0, 0, NULL};
 	int    socket_fd;				        /* socket file descriptor */
     struct timespec start_time, end_time;    /* for calculating proccess time */
 

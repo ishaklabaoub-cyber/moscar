@@ -21,5 +21,5 @@ int         help_opt(const char *arg, struct config *cfg); // DISPLAYING OPTIONS
 int         port_ran(const char *arg, struct config *cfg); // SETTING PORT RANGE
 int         timeout(const  char *arg, struct config *cfg); // SETTING A TIMEOUT FOR A CONNECTION
 int         version(const  char *arg, struct config *cfg); // DISPLAYS THE SCANNER'S VERSION
-                                                           
+int         json_f( const  char *arg, struct config *cfg); // PROVIDES A JSON OUTPUT FILE CONTAINS SUMMARY OF A CONNCETION                                                           
 #endif

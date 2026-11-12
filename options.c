@@ -1,10 +1,10 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
 #include "options.h"
-#include "utils.h"
 #include "ports.h"
 
 // defining options and their properties
@@ -14,9 +14,33 @@ option_entry opt_prop[] = {                    /* returns values meanings: 1 -> 
     {"-port", 'p', 1, &port_ran, "- Setting the port range needed to scan.\n. Usage: ./moscar <ipv4> [--port | -p] [N | N,M | N-M]\n"},
     {"-timeout", 't', 1, &timeout, "- Setting a timeout for a connection.\n. Usage: ./moscar <ipv4> --timeout <ms>\n"},   
     {"-version", 'v', 0, &version, "- Displaying the scanner's version.\nUsage: ./moscar -v || --version"},
+    {"-json" , 'j', 0, &json_f, "- Provides a json output file contains a summary of the scan.\nUsage: ./moscar -j || --json"},
     {NULL, 0, 0, NULL, NULL}
-
 };
+
+int json_f(const char *arg, struct config *cfg) {
+    (void) arg;
+    int r =32;
+    FILE *fp;
+    fp = fopen("json.txt", "w");
+    if(fp == NULL) {
+        perror("fopen");
+        return -1;
+    }
+    fprintf(fp, "{\n");
+    fprintf(fp, "   \"ip address\": %s\n",cfg->input_addr);
+    fprintf(fp, "   \"scanned ports\": [");
+
+    for(uint16_t i = 1;i != MAX_PORT && i != 0; ++i) {
+        if((r=getport(cfg->bmp, i))) {
+            fprintf(fp,"%d,",i);
+        }
+    }
+    fprintf(fp, "]\n");
+    fprintf(fp, "}\n");
+    fclose(fp);
+    return 0;
+}
 
 int version(const char *arg, struct config *cfg) {
     (void) arg;
