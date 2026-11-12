@@ -47,7 +47,7 @@ EMPTY_ITEMS=${EMPTY_ITEMS:-skip}             # skip: 22,,80  22,  ,22 ignore emp
 EXTRA_RANGE_PART=${EXTRA_RANGE_PART:-ignore} # ignore: 80-90-100 uses 80-90 | reject: it is an error
 REVERSED_RANGE=${REVERSED_RANGE:-swap}       # swap: 90-80 means 80-90 (also inside lists) | reject: error
 TIMEOUT_MIN=${TIMEOUT_MIN:-1}                # smallest --timeout accepted, in milliseconds
-TIMEOUT_MAX=${TIMEOUT_MAX:-1000}            # largest --timeout accepted, in milliseconds
+TIMEOUT_MAX=${TIMEOUT_MAX:-999}            # largest --timeout accepted, in milliseconds
 REPEAT_TIMEOUT=${REPEAT_TIMEOUT:-last}       # last: the last --timeout wins | reject: a second --timeout is an error
 
 # Test ports: A and C get listeners; B and the rest of the range stay closed.
