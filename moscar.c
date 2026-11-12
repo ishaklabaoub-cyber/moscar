@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     long   ports_scanned, port;
     int    prev_err = 0;
     enum   port_state p_state;
-    struct config cofg = {{0}, 0, 0, NULL, 0L, 0L};
+    struct config cofg = {{0}, 0, 0, 0, NULL, 0L, 0L};
 	int    socket_fd;				        /* socket file descriptor */
     struct timespec start_time, end_time;    /* for calculating proccess time */
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
         if( (byte>>bitpos) )break;
     }
     if(j == MAX_PORT){
-        fprintf(stderr, "No ports are set.\nSetting the default port range[20-80].");
+        fprintf(stderr, "No ports are set.\nSetting the default port range[20-80].\n");
         set_ran(cofg.bmp, $16 20, $16 80);
     }
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        p_state = scan_port(socket_fd, cofg.input_addr, port);
+        p_state = scan_port(socket_fd, cofg.input_addr, port, &cofg);
         switch(p_state) {
             case _OPEN:
                 printf("port %ld is open on %s\n", port, cofg.input_addr);

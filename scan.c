@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
-enum port_state scan_port(int socket_fd,const char *input_addr,long port)
+enum port_state scan_port(int socket_fd,const char *input_addr,long port,struct config *cfg)
 {
     struct sockaddr_in addr;		        /* ip address */
 	struct pollfd pfd;			            /* for a non-blocking socket */
@@ -37,7 +37,7 @@ enum port_state scan_port(int socket_fd,const char *input_addr,long port)
         int current_error = errno;
 		if(current_error == expected_error){	// connection in progress
 
-				int return_val_poll = poll(&pfd, 1, 300);
+				int return_val_poll = poll(&pfd, 1, cfg->timeout);
 				if(pfd.revents & POLLOUT){	// the socket is writable and O_NONBLOCK must be set
 					
 					if(getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &err, &len) == -1){

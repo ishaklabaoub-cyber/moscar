@@ -6,14 +6,16 @@
 
 #define TOK_DELIM " -"
 #define LIS_DELIM " ,"
-#define MAX_CAP   6400
-#define MIN_PORT  1
-#define MAX_PORT  65535 
+#define MAX_CAP      6400
+#define MIN_PORT     1
+#define MAX_PORT     65535 
+#define MAX_TIMEOUT  1000 
 #define MIN(X,Y) (((X) < (Y)) ? X : Y)
 #define MAX(X,Y) (((X) > (Y)) ? X : Y)
 
 struct config {
     bitmap bmp[MAX_PORT];
+    int  timeout;
     int  port_list;
     int  takes_args;
     char *input_addr;

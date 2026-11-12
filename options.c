@@ -18,8 +18,41 @@ option_entry opt_prop[] = {                    /* returns values meanings: 1 -> 
 };
 
 int timeout(const char *arg, struct config *cfg) {
-    assert(false && "TODO: timeout function is not imeplemented.\n");
-    return 0;
+    if(arg == NULL) {
+        // default timeout is set if nothing gets passed
+        cfg->timeout = 300;
+        return 0;
+    } else {
+        if(!isthere_digits(arg)) {
+            fprintf(stderr, "You did not pass a valid timeout number '%s' expected(<ms> e.g.: 300).\n",arg);
+            return -1;
+        }
+    }
+
+    char* str = strdup(arg);
+    char *endptr = NULL;
+    int v;
+    
+    v = strtol(str, &endptr, 10);
+    
+    printf("\t\ttimeout: DEBUG: v[%d]\n",v);
+    if(endptr[0] == '\0' && v < MAX_TIMEOUT && v > 0){ // valid timeout number
+        cfg->timeout = v;
+        free(str);
+        str = NULL;
+        return 0;
+    } else {
+        if(v >= MAX_TIMEOUT) {
+            fprintf(stderr, "This timeout (%d) takes a lot of time to run a scan.\n-Timeout should be between 0 and 1000.\n",v);
+        } else if(v < 0) {
+            fprintf(stderr, "You passed a negative timeout (%d).\n",v);
+        }else {
+            fprintf(stderr, "You passed an Invalid timeout number(%d).\n",v);
+        }
+        free(str);
+        str = NULL;
+        return -1;
+    }
 }
 
 int  port_ran(const char *arg, struct config *cfg)

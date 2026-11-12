@@ -1,6 +1,7 @@
 #ifndef SCAN_H
 #define SCAN_H
 
+#include "utils.h"
 
 enum port_state {
     _OPEN      = 01,            // when an open port gets scanned
@@ -11,6 +12,6 @@ enum port_state {
     _UNDEFINED = 64             // undefined state, beyond(ENETUNREACH, ETIMEDOUT, ECONNREFUSED)
 };
 
-enum port_state scan_port(int , const char *, long);       // USED  FOR SCANNING PORTS
+enum port_state scan_port(int , const char *, long,struct config*);       // USED  FOR SCANNING PORTS
 
 #endif
