@@ -30,6 +30,7 @@ See what the summary says. Write down what it should say.
 # Use endptr with strtol to detect junk and to know where each item ends.
 # Wire up the summary: ports scanned is now the number of set bits, not max - min + 1.
 
+// Task 4 DONE ;)
 ## Task 4: retries and --timeout:
 # Add timeout_ms (default 300) and retries (default 1 or 2) to struct config, plus --timeout <ms> as an option that takes a value (decide whether --timeout=500 is accepted too).
 # Retry only unanswered probes. A refused connection is a final answer, so don’t retry it.
