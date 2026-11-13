@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     long   ports_scanned, port;
     int    prev_err = 0;
     enum   port_state p_state;
-    struct config cofg = {{0}, 0, 0, 0, NULL};
+    struct config cofg = {{0}, 0, 0, 0, NULL,{0}};
 	int    socket_fd;				        /* socket file descriptor */
     struct timespec start_time, end_time;    /* for calculating proccess time */
 
@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
     unreachable_count = 0;
     error_count       = 0;
     ports_scanned     = 0L;
+
 
     // Checking if there any ports are set if not setting the default range [20-80]
     uint16_t byte, bitpos, j;
@@ -96,7 +97,7 @@ int main(int argc, char *argv[])
     
 
     // SUMMARY
-    printf("\nSUMMARY: ports scanned[%ld] { open ports[%d], closed ports[%d], filtered ports[%d], unreachable ports[%d], errors[%d]} --> time taken: [%.2lf s]\n", 
+    printf("\n-SUMMARY: ports scanned[%ld]{ open ports[%d], closed ports[%d], filtered ports[%d], unreachable ports[%d], errors[%d]}\n-time taken: [%.2lf s]\n", 
                        ports_scanned, open_count, closed_count, filtered_count, unreachable_count, error_count, time_taken);
 	return 0;
 }

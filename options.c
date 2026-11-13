@@ -18,23 +18,31 @@ option_entry opt_prop[] = {                    /* returns values meanings: 1 -> 
     {NULL, 0, 0, NULL, NULL}
 };
 
+// TODO: FIX the open_ports array (it is not taking values)
 int json_f(const char *arg, struct config *cfg) {
     (void) arg;
-    int r =32;
     FILE *fp;
+
+
     fp = fopen("json.txt", "w");
     if(fp == NULL) {
         perror("fopen");
         return -1;
     }
+
     fprintf(fp, "{\n");
     fprintf(fp, "   \"ip address\": %s\n",cfg->input_addr);
     fprintf(fp, "   \"scanned ports\": [");
 
     for(uint16_t i = 1;i != MAX_PORT && i != 0; ++i) {
-        if((r=getport(cfg->bmp, i))) {
+        if(getport(cfg->bmp, i)) {
             fprintf(fp,"%d,",i);
         }
+    }
+    fprintf(fp, "]\n");
+    fprintf(fp, "   \"open ports\": [");
+    for(int i = 0;cfg->open_ports[i] != 0; ++i) {
+        fprintf(fp, "%ld,",cfg->open_ports[i]);
     }
     fprintf(fp, "]\n");
     fprintf(fp, "}\n");
