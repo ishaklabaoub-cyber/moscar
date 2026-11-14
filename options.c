@@ -31,7 +31,11 @@ int json_f(const char *arg, struct config *cfg) {
     }
 
     fprintf(fp, "{\n");
-    fprintf(fp, "   \"ip address\": %s\n",cfg->input_addr);
+    if(cfg->input_addr == NULL){
+        fprintf(fp, "   \"ip address\": No ip address is given\n");
+    } else {
+        fprintf(fp, "   \"ip address\": %s\n",cfg->input_addr);
+    }
     fprintf(fp, "   \"scanned ports\": [");
 
     for(uint16_t i = 1;i != MAX_PORT && i != 0; ++i) {
