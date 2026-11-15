@@ -17,7 +17,7 @@ enum port_state scan_port(int socket_fd,const char *input_addr,long port,struct 
 	struct pollfd pfd;			            /* for a non-blocking socket */
 	int    expected_error = EINPROGRESS;	/* to identify that the connection is in progress */
 	int    err;   
-    static int i = 0;
+    int    i = 0;
     socklen_t len = sizeof(err);
     
     addr.sin_family = AF_INET;
@@ -54,6 +54,7 @@ enum port_state scan_port(int socket_fd,const char *input_addr,long port,struct 
                         close(socket_fd);
 						if(err == 0){	// connection succeeded
                             cfg->open_ports[i++] = port;
+                            printf("\t\tscan_port DEBUG: open_port[%ld],  i[%d]\n",cfg->open_ports[i-1],i-1);
 							return _OPEN;
 
 						} else if(err == ECONNREFUSED){ // connection refused
@@ -94,7 +95,7 @@ enum port_state scan_port(int socket_fd,const char *input_addr,long port,struct 
 		// connection succeed
 		printf("port %ld is open on %s\n", port, input_addr);
         cfg->open_ports[i++] = port;
-        printf("\t\tscan_port DEBUG: open_port[%ld]\n",cfg->open_ports[i-1]);
+        printf("\t\tscan_port outerDEBUG: open_port[%ld]\n",cfg->open_ports[i-1]);
         close(socket_fd);
         return _OPEN;
     
