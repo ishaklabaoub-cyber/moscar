@@ -10,6 +10,8 @@
 #include "parsing.h"
 #include "utils.h"
 
+/*TODO: might consider turning open_ports array into a bitmap (closed ports represented as 0 and open as 1) */
+
 int main(int argc, char *argv[])
 {
     int    open_count, closed_count, filtered_count, unreachable_count, error_count;    
@@ -91,9 +93,9 @@ int main(int argc, char *argv[])
         ports_scanned++;
 	}
 
-    /* if user include the output json file we call it after the connection ends to collect correct data*/
-    opt_prop[4].handler("do not take args",&cofg);
-
+    /* if user include the output json file we call it after the connection ends to valid data*/
+    opt_prop[4].handler("do not take args", &cofg);
+ 
     timespec_get(&end_time, TIME_UTC);
     
     double time_taken = (end_time.tv_sec - start_time.tv_sec) + (double)(end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0;
