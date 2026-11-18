@@ -16,3 +16,4 @@
 # added a timeout function in the option.c and added int timeout in struct config to use it in the scan_port function in scan.c
 
 # added a version displaying option that displays moscar's version 
+# the open_ports array now is taking valid data (call the json option function after the connection end to print open_ports array after it gathered data).
