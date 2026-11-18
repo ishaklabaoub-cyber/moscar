@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include "ports.h"
 #include "scan.h"
+#include "options.h"
 #include "parsing.h"
 #include "utils.h"
 
@@ -15,7 +16,7 @@ int main(int argc, char *argv[])
     long   ports_scanned, port;
     int    prev_err = 0;
     enum   port_state p_state;
-    struct config cofg = {{0}, 0, 0, 0, NULL,{0}};
+    struct config cofg = {{0}, 0, 0, 0, 0, NULL,{0}};
 	int    socket_fd;				        /* socket file descriptor */
     struct timespec start_time, end_time;    /* for calculating proccess time */
 
@@ -90,6 +91,8 @@ int main(int argc, char *argv[])
         ports_scanned++;
 	}
 
+    /* if user include the output json file we call it after the connection ends to collect correct data*/
+    opt_prop[4].handler("do not take args",&cofg);
 
     timespec_get(&end_time, TIME_UTC);
     

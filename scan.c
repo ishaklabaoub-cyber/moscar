@@ -54,7 +54,6 @@ enum port_state scan_port(int socket_fd,const char *input_addr,long port,struct 
                         close(socket_fd);
 						if(err == 0){	// connection succeeded
                             cfg->open_ports[i++] = port;
-                            printf("\t\tscan_port DEBUG: open_port[%ld],  i[%d]\n",cfg->open_ports[i-1],i-1);
 							return _OPEN;
 
 						} else if(err == ECONNREFUSED){ // connection refused

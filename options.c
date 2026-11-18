@@ -309,7 +309,7 @@ int help_opt(const char *arg, struct config *cfg)
     }
     return 1;
 }
-int exec_opt(char *option, char *arg, struct config *cofg) 
+int exec_opt(char *option, char *arg, struct config *cfg) 
 {
     if(option == NULL) {
         fprintf(stderr, "exec_opt: passed an empty string\n");
@@ -320,10 +320,16 @@ int exec_opt(char *option, char *arg, struct config *cofg)
        for(int i = 0;opt_prop[i].handler != NULL; ++i) {
            if(strcmp(option,opt_prop[i].long_name) == 0) 
            {
+               if(strcmp(option,"-json") == 0){
+                   cfg->jo = 1;
+                   free(option);
+                   option = NULL;
+                   return 0;
+               }
                free(option);
                option = NULL;
-               return (opt_prop[i].takes_args) ? opt_prop[i].handler(arg, cofg) : 
-                                                 opt_prop[i].handler("do not need args", cofg);
+               return (opt_prop[i].takes_args) ? opt_prop[i].handler(arg, cfg) : 
+                                                 opt_prop[i].handler("do not need args", cfg);
            }
        }
     } else{
@@ -331,10 +337,16 @@ int exec_opt(char *option, char *arg, struct config *cofg)
   
            if(option[0] == opt_prop[i].short_name) 
            {
+                if(strcmp(option,"-j") == 0){
+                    cfg->jo = 1;
+                    free(option);
+                    option = NULL;
+                    return 0;
+               }
                free(option);
                option = NULL;
-               return (opt_prop[i].takes_args) ? opt_prop[i].handler(arg, cofg) : 
-                                                 opt_prop[i].handler("do not need args", cofg);
+               return (opt_prop[i].takes_args) ? opt_prop[i].handler(arg, cfg) : 
+                                                 opt_prop[i].handler("do not need args", cfg);
            }
        }
     }

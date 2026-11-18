@@ -19,6 +19,7 @@ struct config {
     int  timeout;
     int  port_list;
     int  takes_args;
+    int  jo;
     char *input_addr;
     long  open_ports[MAX_PORT];
 };
