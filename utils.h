@@ -16,11 +16,12 @@
 
 struct config {
     bitmap bmp[MAX_PORT];
-    int  timeout;
-    int  port_list;
-    int  takes_args;
-    int  jo;
-    char *input_addr;
+    bitmap oc_ports[MAX_PORT];  /* open closed bitmap ports */
+    int  timeout;               /* for the option to set a timeout for a connection */
+    int  port_list;             /* when this variable is set to 1 that means the ports are passed as a list */
+    int  takes_args;            /* when this variable is set to 1 that means the option takes arguments*/
+    int  jo;                    /* when this variable is set to 1 that means that the user includes the json option */
+    char *input_addr;           /* the IP address given by the user */
     long  open_ports[MAX_PORT];
 };
 
