@@ -6,6 +6,7 @@
 #include <limits.h>
 #include "options.h"
 #include "ports.h"
+#include "utils.h"
 
 // defining options and their properties
 option_entry opt_prop[] = {                    /* returns values meanings: 1 -> program should exit , -1 -> error detected program must exit, 0 -> success */
@@ -18,7 +19,8 @@ option_entry opt_prop[] = {                    /* returns values meanings: 1 -> 
     {NULL, 0, 0, NULL, NULL}
 };
 
-// TODO: FIX the open_ports array (it is not taking values)
+
+
 int json_f(const char *arg, struct config *cfg) {
     (void) arg;
     FILE *fp;
@@ -45,8 +47,8 @@ int json_f(const char *arg, struct config *cfg) {
     }
     fprintf(fp, "]\n");
     fprintf(fp, "   \"open ports\": [");
-    for(int i = 0;cfg->open_ports[i] != 0; ++i) {
-        fprintf(fp, "%ld,",cfg->open_ports[i]);
+    for(int i = 0; cfg->open_ports[i]!=0; ++i) {
+        fprintf(fp,"%ld,",cfg->open_ports[i]);
     }
     fprintf(fp, "]\n");
     fprintf(fp, "}\n");

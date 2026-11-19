@@ -16,7 +16,6 @@
 
 struct config {
     bitmap bmp[MAX_PORT];       /* bitmap for setting-unsetting ports */
-    bitmap oc_ports[MAX_PORT];  /* open closed bitmap ports (0->closed, 1->open) {used in the json output file}*/
     int  timeout;               /* for the option to set a timeout for a connection */
     int  port_list;             /* when this variable is set to 1 that means the ports are passed as a list */
     int  takes_args;            /* when this variable is set to 1 that means the option takes arguments*/
