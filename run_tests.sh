@@ -46,9 +46,15 @@ REPEAT_P=${REPEAT_P:-union}                  # union: every -p adds ports | repl
 EMPTY_ITEMS=${EMPTY_ITEMS:-skip}             # skip: 22,,80  22,  ,22 ignore empty items | reject: errors
 EXTRA_RANGE_PART=${EXTRA_RANGE_PART:-ignore} # ignore: 80-90-100 uses 80-90 | reject: it is an error
 REVERSED_RANGE=${REVERSED_RANGE:-swap}       # swap: 90-80 means 80-90 (also inside lists) | reject: error
-TIMEOUT_MIN=${TIMEOUT_MIN:-1}                # smallest --timeout accepted, in milliseconds (negative is rejected)
+TIMEOUT_MIN=${TIMEOUT_MIN:-1}                # smallest --timeout accepted, in milliseconds (0 and negative are rejected)
 TIMEOUT_MAX=${TIMEOUT_MAX:-999}              # largest --timeout accepted, in milliseconds (1000 and above is rejected)
 REPEAT_TIMEOUT=${REPEAT_TIMEOUT:-last}       # last: the last --timeout wins | reject: a second --timeout is an error
+VERSION_EXIT=${VERSION_EXIT:-1}              # exit code after --version / -v
+VERSION_TEXT=${VERSION_TEXT:-moscar v0.2}    # text that --version must print
+JSON_FILE=${JSON_FILE:-json.txt}             # name of the file --json writes (in the current directory)
+JSON_KEY_IP=${JSON_KEY_IP:-ip address}       # keys inside the JSON file
+JSON_KEY_SCANNED=${JSON_KEY_SCANNED:-scanned ports}
+JSON_KEY_OPEN=${JSON_KEY_OPEN:-open ports}
 
 # Test ports: A and C get listeners; B and the rest of the range stay closed.
 PORT_A=18080
@@ -101,6 +107,7 @@ cleanup() {
         kill "$p" 2>/dev/null
     done
     wait 2>/dev/null
+    [ -n "$WORKDIR" ] && rm -rf "$WORKDIR"
 }
 trap cleanup EXIT
 
@@ -113,7 +120,7 @@ run_scan() {
     errf=$(mktemp)
     t0=$(date +%s.%N)
     # shellcheck disable=SC2086   # RUNNER is meant to word-split ("unshare -rn")
-    OUT=$(timeout "$RUN_TIMEOUT" $RUNNER "$BIN" "$@" 2>"$errf" </dev/null)
+    OUT=$(timeout "$RUN_TIMEOUT" $BASE_RUNNER $RUNNER "$BIN" "$@" 2>"$errf" </dev/null)
     CODE=$?
     t1=$(date +%s.%N)
     ERR=$(<"$errf")
@@ -188,6 +195,64 @@ expect_help() {
     if [ -z "$p" ]; then pass "$name"; else fail "$name" "$p"; fi
 }
 
+# expect_complete_or_rejected <name> <ports-scanned> <args...>
+# An input that is too big for the program must be scanned completely or rejected
+# with an error. It must never be silently cut short.
+expect_complete_or_rejected() {
+    local name=$1 n=$2
+    shift 2
+    run_scan "$@"
+    if grep -q "SUMMARY" <<<"$OUT"; then
+        expect "$name: scanned completely" "$n" - -
+    elif [ "$CODE" -eq "$ERR_EXIT" ] && ! sanitizer_hit; then
+        pass "$name: rejected with an error"
+    else
+        fail "$name" "exit code $CODE, no summary (or a sanitizer report)"
+    fi
+}
+
+# expect_version <name> <args...> : prints VERSION_TEXT, exits with VERSION_EXIT, does not scan
+expect_version() {
+    local name=$1 p=""
+    shift
+    run_scan "$@"
+    [ "$CODE" -eq 124 ] && p+="HANG (timeout); "
+    [ "$CODE" -ne "$VERSION_EXIT" ] && p+="exit code $CODE (wanted $VERSION_EXIT); "
+    sanitizer_hit && p+="sanitizer report on stderr; "
+    grep -qF "$VERSION_TEXT" <<<"$OUT" || p+="'$VERSION_TEXT' was not printed; "
+    grep -q "SUMMARY" <<<"$OUT" && p+="a scan ran after the version text; "
+    if [ -z "$p" ]; then pass "$name"; else fail "$name" "$p"; fi
+}
+
+# json_matches <ip> <scanned,ports> <open,ports> : check the JSON file in WORKDIR
+json_matches() {
+    python3 - "$WORKDIR/$JSON_FILE" "$JSON_KEY_IP" "$JSON_KEY_SCANNED" "$JSON_KEY_OPEN" "$1" "$2" "$3" <<'PY'
+import json, sys
+path, kip, ksc, kop, ip, scanned, opened = sys.argv[1:8]
+try:
+    d = json.load(open(path))
+except FileNotFoundError:
+    print("the file was not written"); sys.exit(1)
+except Exception as e:
+    print("not valid JSON: %s" % e); sys.exit(1)
+want_sc = sorted(int(x) for x in scanned.split(",") if x)
+want_op = sorted(int(x) for x in opened.split(",") if x)
+problems = []
+for k in (kip, ksc, kop):
+    if k not in d:
+        problems.append("missing key '%s'" % k)
+if not problems:
+    if d[kip] != ip:
+        problems.append("%s is %r, wanted %r" % (kip, d[kip], ip))
+    if sorted(d[ksc]) != want_sc:
+        problems.append("%s is %s, wanted %s" % (ksc, sorted(d[ksc])[:6], want_sc[:6]))
+    if sorted(d[kop]) != want_op:
+        problems.append("%s is %s, wanted %s" % (kop, sorted(d[kop]), want_op))
+if problems:
+    print("; ".join(problems)); sys.exit(1)
+PY
+}
+
 # Sorted, space-separated list of ports the scanner reported open.
 scanner_open_ports() {
     grep -oE 'port [0-9]+ is open' <<<"$OUT" | awk '{print $2}' | sort -n | tr '\n' ' '
@@ -205,6 +270,16 @@ ss_open_ports() {
 if [ ! -x "$BIN" ]; then
     echo "binary '$BIN' not found or not executable (run 'make test', or build it first)" >&2
     exit 2
+fi
+# Every scan runs inside a scratch directory, so files the program writes
+# (json.txt) never pollute your project folder. The binary needs an absolute path.
+BIN=$(cd "$(dirname "$BIN")" && pwd)/$(basename "$BIN")
+WORKDIR=$(mktemp -d)
+BASE_RUNNER=""
+if env -C "$WORKDIR" true 2>/dev/null; then
+    BASE_RUNNER="env -C $WORKDIR"
+else
+    echo "note: 'env -C' is not available; scans run in the current directory" >&2
 fi
 for tool in ss python3 timeout; do
     command -v "$tool" >/dev/null || { echo "missing tool: $tool" >&2; exit 2; }
@@ -352,6 +427,51 @@ fi
 expect_reject "junk after a number in a list (22,80abc)" "$HOST" -p 22,80abc
 expect_reject "--port followed by an option (--port -p)" "$HOST" --port -p
 
+echo "== version =="
+expect_version "--version" --version
+expect_version "-v" -v
+expect_version "target then --version" "$HOST" --version
+expect_version "--version after another option" "$HOST" -p 80 --version
+run_scan --help
+for word in version json; do
+    if grep -qi "$word" <<<"$OUT"; then pass "help mentions $word"; else fail "help mentions $word" "the word '$word' is not in the help text"; fi
+done
+
+echo "== json output (--json / -j) =="
+rm -f "$WORKDIR/$JSON_FILE"
+run_scan "$HOST" -p "$PORT_A-$PORT_C"
+if [ -e "$WORKDIR/$JSON_FILE" ]; then
+    fail "no $JSON_FILE without --json" "a scan without --json still wrote $JSON_FILE"
+else
+    pass "no $JSON_FILE without --json"
+fi
+J_SC="$PORT_A,$PORT_B,$PORT_C"
+J_OP="$PORT_A,$PORT_C"
+for opt in --json -j; do
+    rm -f "$WORKDIR/$JSON_FILE"
+    run_scan "$HOST" -p "$PORT_A-$PORT_C" "$opt"
+    expect "$opt does not change the scan" 3 2 1
+    if msg=$(json_matches "$HOST" "$J_SC" "$J_OP"); then
+        pass "$opt: valid JSON with the right address, scanned ports and open ports"
+    else
+        fail "$opt: valid JSON with the right address, scanned ports and open ports" "$msg"
+    fi
+done
+rm -f "$WORKDIR/$JSON_FILE"
+run_scan "$HOST" --json -p "$PORT_A-$PORT_C"
+if msg=$(json_matches "$HOST" "$J_SC" "$J_OP"); then pass "--json before the port option"; else fail "--json before the port option" "$msg"; fi
+rm -f "$WORKDIR/$JSON_FILE"
+run_scan "$HOST" -p "$PORT_B" --json
+if msg=$(json_matches "$HOST" "$PORT_B" ""); then pass "json with no open ports"; else fail "json with no open ports" "$msg"; fi
+rm -f "$WORKDIR/$JSON_FILE"
+run_scan "$HOST" -p 65534-65535 --json
+if msg=$(json_matches "$HOST" "65534,65535" ""); then pass "json lists port 65535"; else fail "json lists port 65535" "$msg"; fi
+rm -f "$WORKDIR/$JSON_FILE"
+run_scan "$HOST" -p "$PORT_A,$PORT_C" --json
+run_scan "$HOST" -p "$PORT_B" --json          # second run, file not removed in between
+if msg=$(json_matches "$HOST" "$PORT_B" ""); then pass "the file is rewritten, not appended to"; else fail "the file is rewritten, not appended to" "$msg"; fi
+rm -f "$WORKDIR/$JSON_FILE"
+
 echo "== timeout option (--timeout <ms>) =="
 expect_scan "--timeout with a valid value"                1 "$HOST" -p 80 --timeout 500
 expect_scan "--timeout before the other options"          1 "$HOST" --timeout 500 -p 80
@@ -369,6 +489,7 @@ expect_reject "--timeout -5 (negative)"        "$HOST" -p 80 --timeout -5
 expect_reject "--timeout 1.5 (decimal)"        "$HOST" -p 80 --timeout 1.5
 expect_reject "--timeout with an empty value"  "$HOST" -p 80 --timeout ""
 expect_reject "--timeout too big for a long (ERANGE)" "$HOST" -p 80 --timeout 99999999999999999999
+expect_reject "a value that wraps to 500 if narrowed to int (2^32+500)" "$HOST" -p 80 --timeout 4294967796
 expect_reject "--timeout followed by an option (--timeout -p)" "$HOST" --timeout -p 80
 expect_reject "-p followed by --timeout"       "$HOST" -p --timeout 500
 if [ "$REPEAT_TIMEOUT" = "reject" ]; then
@@ -415,7 +536,10 @@ fi
 LONG_LIST=$(seq -s, 1 3000)
 expect_scan "a list of 3000 different ports" 3000 "$HOST" -p "$LONG_LIST"
 DUP_LIST=$(yes 22 | head -n 20000 | paste -sd, -)
-expect_scan "20000 copies of one port count once" 1 "$HOST" -p "$DUP_LIST"
+expect_complete_or_rejected "20000 copies of one port" 1 "$HOST" -p "$DUP_LIST"
+# a list longer than any internal limit must be scanned completely or rejected, never cut short
+BIG_LIST=$(seq -s, 1 7000)
+expect_complete_or_rejected "a list of 7000 different ports" 7000 "$HOST" -p "$BIG_LIST"
 HUGE=$(printf '9%.0s' $(seq 1 5000))
 expect_reject "a 5000-digit number" "$HOST" -p "$HUGE"
 expect_reject "a 5000-digit number inside a list" "$HOST" -p "22,$HUGE"

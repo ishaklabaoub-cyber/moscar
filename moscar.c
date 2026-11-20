@@ -94,8 +94,9 @@ int main(int argc, char *argv[])
 	}
 
     /* if user include the output json file we call it after the connection ends to valid data*/
-    opt_prop[4].handler("do not take args", &cofg);
- 
+    if(cofg.jo){
+        opt_prop[4].handler("do not take args", &cofg);
+    }
     timespec_get(&end_time, TIME_UTC);
     
     double time_taken = (end_time.tv_sec - start_time.tv_sec) + (double)(end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0;

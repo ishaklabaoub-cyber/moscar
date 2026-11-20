@@ -34,9 +34,9 @@ int json_f(const char *arg, struct config *cfg) {
 
     fprintf(fp, "{\n");
     if(cfg->input_addr == NULL){
-        fprintf(fp, "   \"ip address\": No ip address is given\n");
+        fprintf(fp, "   \"ip address\": No ip address is given,\n");
     } else {
-        fprintf(fp, "   \"ip address\": %s\n",cfg->input_addr);
+        fprintf(fp, "   \"ip address\": \"%s\",\n",cfg->input_addr);
     }
     fprintf(fp, "   \"scanned ports\": [");
 
@@ -45,7 +45,7 @@ int json_f(const char *arg, struct config *cfg) {
             fprintf(fp,"%d,",i);
         }
     }
-    fprintf(fp, "]\n");
+    fprintf(fp, "],\n");
     fprintf(fp, "   \"open ports\": [");
     for(int i = 0; cfg->open_ports[i]!=0; ++i) {
         fprintf(fp,"%ld,",cfg->open_ports[i]);
