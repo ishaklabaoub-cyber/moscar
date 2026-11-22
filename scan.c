@@ -17,7 +17,7 @@ enum port_state scan_port(int socket_fd,const char *input_addr,long port,struct 
 	struct pollfd pfd;			            /* for a non-blocking socket */
 	int    expected_error = EINPROGRESS;	/* to identify that the connection is in progress */
 	int    err;   
-    int    i = 0;
+    static int    i = 0;
     socklen_t len = sizeof(err);
     
     addr.sin_family = AF_INET;

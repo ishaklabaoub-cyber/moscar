@@ -17,6 +17,7 @@ option_entry opt_prop[] = {                    /* returns values meanings: 1 -> 
     {"-version", 'v', 0, &version, "- Displaying the scanner's version.\nUsage: ./moscar -v || --version"},
     {"-json" , 'j', 0, &json_f, "- Provides a json output file contains a summary of the scan.\nUsage: ./moscar -j || --json"},
     {NULL, 0, 0, NULL, NULL}
+
 };
 
 
@@ -40,14 +41,19 @@ int json_f(const char *arg, struct config *cfg) {
     }
     fprintf(fp, "   \"scanned ports\": [");
 
-    for(uint16_t i = 1;i != MAX_PORT && i != 0; ++i) {
-        if(getport(cfg->bmp, i)) {
-            fprintf(fp,"%d,",i);
+    for(int i = 1;i != cfg->portm+1 && i != 0; ++i) {
+        if(getport(cfg->bmp, $16 i)) {
+            fprintf(fp,"%d",i);
+            if(i != cfg->portm)fprintf(fp, ",");
         }
     }
     fprintf(fp, "],\n");
     fprintf(fp, "   \"open ports\": [");
     for(int i = 0; cfg->open_ports[i]!=0; ++i) {
+        if(cfg->open_ports[i+1] == 0){
+            fprintf(fp,"%ld", cfg->open_ports[i]);
+            break;
+        }
         fprintf(fp,"%ld,",cfg->open_ports[i]);
     }
     fprintf(fp, "]\n");
@@ -81,23 +87,23 @@ int timeout(const char *arg, struct config *cfg) {
         return -1;
     }
     char *endptr = NULL;
-    int v;
+    long v;
 
     errno = 0;
     v = strtol(str, &endptr, 10);
-    
-    if(endptr[0] == '\0' && v < MAX_TIMEOUT && v > 0){ // valid timeout number
+    //if(v >= INT_MAX)v = v - INT_MAX; 
+    if(endptr[0] == '\0' && v < MAX_TIMEOUT && v > 0 && v < INT_MAX){ // valid timeout number
         cfg->timeout = v;
         free(str);
         str = NULL;
         return 0;
     } else {
         if(v >= MAX_TIMEOUT) {
-            fprintf(stderr, "This timeout (%d) takes a lot of time to run a scan.\n-Timeout should be between 0 and 1000.\n",v);
+            fprintf(stderr, "This timeout (%ld) takes a lot of time to run a scan.\n-Timeout should be between 0 and 1000.\n",v);
         } else if(v < 0) {
-            fprintf(stderr, "You passed a negative timeout (%d).\n",v);
+            fprintf(stderr, "You passed a negative timeout (%ld).\n",v);
         }else {
-            fprintf(stderr, "You passed an Invalid timeout number(%d).\n",v);
+            fprintf(stderr, "You passed an Invalid timeout number(%ld).\n",v);
         }
         free(str);
         str = NULL;
@@ -339,7 +345,8 @@ int exec_opt(char *option, char *arg, struct config *cfg)
   
            if(option[0] == opt_prop[i].short_name) 
            {
-                if(strcmp(option,"-j") == 0){
+               printf("\t\texec_opt: DEBUG options[%s]\n", option);
+                if(strcmp(option,"j") == 0){
                     cfg->jo = 1;
                     free(option);
                     option = NULL;

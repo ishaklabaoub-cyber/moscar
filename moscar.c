@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     long   ports_scanned, port;
     int    prev_err = 0;
     enum   port_state p_state;
-    struct config cofg = {{0}, 0, 0, 0, 0, NULL,{0}};
+    struct config cofg = {{0}, 0, 0, 0, 0, 0, NULL,{0}};
 	int    socket_fd;				        /* socket file descriptor */
     struct timespec start_time, end_time;    /* for calculating proccess time */
 
@@ -29,6 +29,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    if(cofg.input_addr == NULL) {
+        cofg.input_addr = "8.8.8.8";
+    }
     // initializing counters
     open_count        = 0;
     closed_count      = 0;
@@ -62,6 +65,7 @@ int main(int argc, char *argv[])
 			prev_err = errno;
             continue;
         }
+        cofg.portm = port;
 
         p_state = scan_port(socket_fd, cofg.input_addr, port, &cofg);
         switch(p_state) {

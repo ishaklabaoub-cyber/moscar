@@ -36,7 +36,9 @@ moscar --help
 |---|---|
 | `-p`, `--port` | Port or port range to scan: `N` or `N-M` (1-65535) |
 | `-h`, `--help` | Show the help text and exit |
-
+| `-t`, `--timeout` |Set a timeout for each connectio: <ms> |
+| `-j`, `--json` | Output a JSON file that contain "ip address scanned ,scanned ports ,open ports |  
+| `-v`, `--version` | Displays the current version of the scanner (moscar) |
 The target must be an IPv4 address. Options can come before or after it.
 
 ### Examples
@@ -153,16 +155,7 @@ build.
 - TCP connect scan only. No SYN scan, no UDP.
 - One probe at a time. A silent (filtered) port costs 300 ms, so 1,000 of them
   take about five minutes.
-- Fixed 300 ms timeout and no retries.
 - One target per run: no hostnames, no CIDR ranges, no port lists.
-- No service or version detection.
-
-## Roadmap
-
-- **v0.2:** comma-separated port lists (`22,80,443`), retries for
-  unanswered probes, a configurable timeout.
-- **Later:** concurrent probing, hostnames and CIDR targets, JSON output,
-  SYN scanning.
 
 ## License
 

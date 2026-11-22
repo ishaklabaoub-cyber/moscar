@@ -7,7 +7,7 @@
 
 #define TOK_DELIM " -"
 #define LIS_DELIM " ,"
-#define MAX_CAP      6400
+#define MAX_CAP      10000
 #define MIN_PORT     1
 #define MAX_PORT     65535 
 #define MAX_TIMEOUT  1000 
@@ -16,12 +16,13 @@
 
 struct config {
     bitmap bmp[MAX_PORT];       /* bitmap for setting-unsetting ports */
+    uint16_t portm;           
     int  timeout;               /* for the option to set a timeout for a connection */
     int  port_list;             /* when this variable is set to 1 that means the ports are passed as a list */
     int  takes_args;            /* when this variable is set to 1 that means the option takes arguments*/
     int  jo;                    /* when this variable is set to 1 that means that the user includes the json option */
     char *input_addr;           /* the IP address given by the user */
-    long  open_ports[MAX_PORT];
+    long  open_ports[MAX_PORT]; /* array for storing open ports after the scan */
 };
 
 enum prog_state {
